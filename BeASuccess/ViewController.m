@@ -7,6 +7,11 @@
 //
 
 #import "ViewController.h"
+#import "DBManager.h"
+
+// used for random number generator
+#include <time.h>
+#include <stdlib.h>
 
 @interface ViewController ()
 
@@ -25,7 +30,7 @@
     
     // Create wallpaper
     UIImageView *imageHolder = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, width, height)];
-    UIImage *image = [UIImage imageNamed:@"TestWallpaper"];
+    UIImage *image = [UIImage imageNamed:@"Wallpaper"];
     imageHolder.image = image;
     [self.view addSubview:imageHolder];
     
@@ -38,7 +43,44 @@
     int labelWidth = width - labelPosX;
     int labelHeight = height - labelPosY *2.5;
     _textQuote = [[UITextView alloc]initWithFrame:CGRectMake(labelPosX, labelPosY,labelWidth,labelHeight)];
-    _textQuote.backgroundColor = [UIColor grayColor];
+    
+    // generate a random number between 1 and 5 which represents the quote id
+    srand(time(NULL));
+    int r = rand() % 5;
+    r++;
+    
+    // get quote, author and create the final string
+    NSString *quote = [[DBManager getSharedInstance] getQuoteByID:r];
+    NSString *author = [[DBManager getSharedInstance] getAuthorByID:r];
+    NSString *finalString = [NSString stringWithFormat:@"%@ \n\n\n%@", quote, author];
+    
+    // create the font
+    UIFont *textViewfont = [UIFont fontWithName:@"Papyrus-Condensed" size:26];
+    
+    // text color
+    UIColor *textColor = [UIColor colorWithRed:255.0f/255.0f
+                                         green:165.0f/255.0f
+                                          blue:0.0f/255.0f
+                                         alpha:1.0f];
+
+    // text color
+    UIColor *textBackgroundColor = [UIColor colorWithRed:255.0f/255.0f
+                                         green:165.0f/255.0f
+                                          blue:0.0f/255.0f
+                                         alpha:0.0f];
+    
+    
+    // Assign quote to label
+    _textQuote.text = finalString;
+    _textQuote.textColor = textColor;
+    _textQuote.backgroundColor = textBackgroundColor;
+    [_textQuote setUserInteractionEnabled:NO];
+    _textQuote.font = textViewfont;
+    _textQuote.textAlignment = NSTextAlignmentCenter;
+    
+    // Vertical center alignment
+    [self adjustContentSize:_textQuote];
+
     
     [self.view addSubview:_textQuote];
 }
@@ -114,14 +156,14 @@
     _rightArrowToolbar.frame = CGRectMake(0, 0, width, 40);
     
     // create color for toolbar
-    UIColor *colorToolbar = [UIColor colorWithRed:246.0f/255.0f
-                                            green:206.0f/255.0f
-                                             blue:147.0f/255.0f
-                                            alpha:1.0f];
+    UIColor *colorToolbar = [UIColor colorWithRed:20.0f/255.0f
+                                            green:20.0f/255.0f
+                                             blue:20.0f/255.0f
+                                            alpha:0.0f];
     
     
-    // ************* Right arrow button
-    UIImage *imgArrowRight = [UIImage imageNamed:@"arrowRight.png"];
+    // ************* Settings button
+    UIImage *imgArrowRight = [UIImage imageNamed:@"Settings.png"];
     
     UIButton *btnArrowRight = [UIButton buttonWithType:UIButtonTypeCustom];
     [btnArrowRight addTarget:self action:@selector(showMainToolbar:) forControlEvents:UIControlEventTouchUpInside];
@@ -150,7 +192,7 @@
     _barBtnArrowLeft = [[UIBarButtonItem alloc] initWithCustomView:btnArrowLeft];
     
     // ************* Settings button
-    UIImage *imgSettings = [UIImage imageNamed:@"Settings.png"];
+    UIImage *imgSettings = [UIImage imageNamed:@"Clock.png"];
     
     UIButton *btnSettings = [UIButton buttonWithType:UIButtonTypeCustom];
     [btnSettings addTarget:self action:@selector(settingsButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
@@ -186,8 +228,17 @@
     
     _mainToolbar.hidden = YES;
     
-    _rightArrowToolbar.barTintColor = colorToolbar;
-    _mainToolbar.barTintColor = colorToolbar;
+    // background color for rightArrowToolbar
+    [self.rightArrowToolbar setBackgroundImage:[UIImage new]
+                  forToolbarPosition:UIToolbarPositionAny
+                          barMetrics:UIBarMetricsDefault];
+    _rightArrowToolbar.barTintColor = [UIColor clearColor];
+    
+    // background color for main toolbar
+    [self.mainToolbar setBackgroundImage:[UIImage new]
+                            forToolbarPosition:UIToolbarPositionAny
+                                    barMetrics:UIBarMetricsDefault];
+    _mainToolbar.barTintColor = [UIColor clearColor];
     
     [self.view addSubview:_rightArrowToolbar];
     [self.view addSubview:_mainToolbar];
@@ -202,6 +253,15 @@
 -(BOOL)prefersStatusBarHidden{
     return NO;
 }
+// *********************************************************************************
+
+// ******************************************************** CENTER TEXT VIEW VERTICALLY (quote)
+-(void)adjustContentSize:(UITextView*)tv{
+    CGFloat deadSpace = ([tv bounds].size.height - [tv contentSize].height);
+    CGFloat inset = MAX(0, deadSpace/2.0);
+    tv.contentInset = UIEdgeInsetsMake(inset, tv.contentInset.left, inset, tv.contentInset.right);
+}
+// *********************************************************************************
 
 
 @end

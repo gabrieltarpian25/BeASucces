@@ -158,27 +158,27 @@ static sqlite3_stmt *statement = nil;
     bool boResult;
     
     // quote id = 1 - 226
-    boResult = [self insertData:226 author:@"Pele" quote:@"Success is no accident. It is hard work, perseverance, learning, studying, sacrifice and most of all, love of what you are doing or learning to do"];
+    boResult = [self insertData:1 author:@"Pele" quote:@"Success is no accident. It is hard work, perseverance, learning, studying, sacrifice and most of all, love of what you are doing or learning to do"];
     if(boResult == FALSE)
         return FALSE;
     
     // quote id = 2 - 202
-    boResult = [self insertData:202 author:@"Herman Cain" quote:@"Success is not the key to happiness. Happiness is the key to success. If you love what you are doing, you will be successful"];
+    boResult = [self insertData:2 author:@"Herman Cain" quote:@"Success is not the key to happiness. Happiness is the key to success. If you love what you are doing, you will be successful"];
     if(boResult == FALSE)
         return FALSE;
     
     // quote id = 3 - 57
-    boResult = [self insertData:57 author:@"Dhirubhai Ambani" quote:@"If you don’t build your dream, someone else will hire you to help them build theirs"];
+    boResult = [self insertData:3 author:@"Dhirubhai Ambani" quote:@"If you don’t build your dream, someone else will hire you to help them build theirs"];
     if(boResult == FALSE)
         return FALSE;
     
     // quote id = 4 - 310
-    boResult = [self insertData:310 author:@"Colin Powell" quote:@"There are no secrets to success. It is the result of preparation, hard work, and learning from failure"];
+    boResult = [self insertData:4 author:@"Colin Powell" quote:@"There are no secrets to success. It is the result of preparation, hard work, and learning from failure"];
     if(boResult == FALSE)
         return FALSE;
     
     // quote id = 5 - 71
-    boResult = [self insertData:71 author:@"Winston Churchill" quote:@"Success consists of going from failure to failure without loss of enthusiasm"];
+    boResult = [self insertData:5 author:@"Winston Churchill" quote:@"Success consists of going from failure to failure without loss of enthusiasm"];
     if(boResult == FALSE)
         return FALSE;
 
