@@ -8,6 +8,9 @@
 
 #import <UIKit/UIKit.h>
 
+///    Notification become independent from UIKit
+@import UserNotifications;
+
 @interface ViewController : UIViewController
 
 @property (nonatomic, retain) IBOutlet UITextView  *textQuote;

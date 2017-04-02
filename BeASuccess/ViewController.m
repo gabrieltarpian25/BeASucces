@@ -9,6 +9,12 @@
 #import "ViewController.h"
 #import "DBManager.h"
 
+// imported for screenshot
+#import <QuartzCore/QuartzCore.h>
+
+// imported for sharing on facebook
+#import <Social/Social.h>
+
 // used for random number generator
 #include <time.h>
 #include <stdlib.h>
@@ -30,9 +36,15 @@
     
     // Create wallpaper
     UIImageView *imageHolder = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, width, height)];
-    UIImage *image = [UIImage imageNamed:@"Wallpaper"];
+    UIImage *image = [UIImage imageNamed:@"Wallpaper_1"];
     imageHolder.image = image;
-    [self.view addSubview:imageHolder];
+    // imageHolder.alpha = 0.3;
+    
+    // create black overlay
+    UIView *overlay = [[UIView alloc] initWithFrame:CGRectMake(0, 0, width, height)];
+    [overlay setBackgroundColor:[UIColor colorWithRed:0 green:0 blue:0 alpha:0.75]];
+    [imageHolder addSubview:overlay];
+     [self.view addSubview:imageHolder];
     
     // create toolbars
     [self vCreateToolbars:width];
@@ -55,7 +67,7 @@
     NSString *finalString = [NSString stringWithFormat:@"%@ \n\n\n%@", quote, author];
     
     // create the font
-    UIFont *textViewfont = [UIFont fontWithName:@"Papyrus-Condensed" size:26];
+    UIFont *textViewfont = [UIFont fontWithName:@"Papyrus-Condensed" size:28];
     
     // text color
     UIColor *textColor = [UIColor colorWithRed:255.0f/255.0f
@@ -80,6 +92,15 @@
     
     // Vertical center alignment
     [self adjustContentSize:_textQuote];
+    
+    // Get if this is the first time of running the app
+    BOOL boSecondTime = [[NSUserDefaults standardUserDefaults] boolForKey:@"SecondTime"];
+    if(boSecondTime == NO)
+    {
+        // create push notification when running app for first time
+        [self createPushNotification:9 m:0 boAlert:NO];
+        [[NSUserDefaults standardUserDefaults]setBool:YES forKey:@"SecondTime"];
+    }
 
     
     [self.view addSubview:_textQuote];
@@ -155,13 +176,6 @@
     _rightArrowToolbar = [[UIToolbar alloc]init];
     _rightArrowToolbar.frame = CGRectMake(0, 0, width, 40);
     
-    // create color for toolbar
-    UIColor *colorToolbar = [UIColor colorWithRed:20.0f/255.0f
-                                            green:20.0f/255.0f
-                                             blue:20.0f/255.0f
-                                            alpha:0.0f];
-    
-    
     // ************* Settings button
     UIImage *imgArrowRight = [UIImage imageNamed:@"Settings.png"];
     
@@ -195,7 +209,7 @@
     UIImage *imgSettings = [UIImage imageNamed:@"Clock.png"];
     
     UIButton *btnSettings = [UIButton buttonWithType:UIButtonTypeCustom];
-    [btnSettings addTarget:self action:@selector(settingsButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    [btnSettings addTarget:self action:@selector(changeNotificationTime:) forControlEvents:UIControlEventTouchUpInside];
     btnSettings.bounds = CGRectMake( 0, 5, 25, 25 );
     [btnSettings setImage:imgSettings forState:UIControlStateNormal];
     [btnSettings setShowsTouchWhenHighlighted:TRUE];
@@ -248,6 +262,362 @@
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
+
+// ******************************************************** CHANGE NOTIFICATION TIME BUTTON PRESSED
+-(IBAction)changeNotificationTime:(id)sender
+{
+    NSLog(@"Settings button is pressed \n");
+    
+    // set up the date picker
+    _datePickerNotification = [[UIDatePicker alloc] init];
+    _datePickerNotification.datePickerMode = UIDatePickerModeTime;
+    _datePickerNotification.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    _datePickerNotification.frame = CGRectMake(0,400, self.view.frame.size.width, self.view.frame.size.height - 400);
+    
+    // create color
+    UIColor *colorDatePicker = [UIColor colorWithRed:30.0f/255.0f
+                                               green:30.0f/255.0f
+                                                blue:30.0f/255.0f
+                                               alpha:1.0f];
+    _datePickerNotification.backgroundColor = colorDatePicker;
+    [_datePickerNotification setValue:[UIColor orangeColor] forKey:@"textColor"];
+    
+    // default value
+    int currentHour = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"Hour"];
+    int currentMin  = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"Minute"];
+    NSDate *currentDate = [NSDate date];
+    NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier: NSCalendarIdentifierGregorian];
+    NSDateComponents *components = [gregorian components: NSUIntegerMax fromDate: currentDate];
+    [components setHour: currentHour];
+    [components setMinute: currentMin];
+    NSDate *newDate = [gregorian dateFromComponents: components];
+    _datePickerNotification.date = newDate;
+    
+    
+    // setup the toolbar
+    _toolbarNotification = [[UIToolbar alloc] initWithFrame:CGRectMake(0,0,self.view.frame.size.width,45)];
+    _toolbarNotification.barStyle = UIBarStyleDefault;
+    _toolbarNotification.hidden = NO;
+    _toolbarNotification.barTintColor = [UIColor blackColor];
+    
+    UIBarButtonItem *flexibleSpaceLeft = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
+    
+    UIBarButtonItem* doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:self action:@selector(notificationHourChanged)];
+    [doneButton setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys: [UIColor orangeColor],  NSForegroundColorAttributeName,nil] forState:UIControlStateNormal];
+    
+    UIBarButtonItem* notifButton = [[UIBarButtonItem alloc] initWithTitle:@"Notification hour" style:UIBarButtonItemStyleDone target:self action:nil];
+    [notifButton setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys: [UIColor orangeColor],  NSForegroundColorAttributeName,nil] forState:UIControlStateNormal];
+    notifButton.enabled = NO;
+    
+    UIBarButtonItem* cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"Cancel" style:UIBarButtonItemStylePlain target:self action:@selector(cancelNotificationHour)];
+    [cancelButton setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys: [UIColor orangeColor],  NSForegroundColorAttributeName,nil] forState:UIControlStateNormal];
+    
+    [_toolbarNotification setItems:[NSArray arrayWithObjects:cancelButton, flexibleSpaceLeft, notifButton,flexibleSpaceLeft, doneButton, nil]];
+    
+    // [_dateNotification addSubview:_toolbarNotification];
+    // _dateNotification.inputAccessoryView = _toolbarNotification;
+    [self.view addSubview:_datePickerNotification];
+    [self.view addSubview:_toolbarNotification];
+}
+// *********************************************************************************
+
+// ******************************************************** NOTIFICATION HOUR CHANGED
+-(void) notificationHourChanged
+{
+    NSLog(@"Notification hour changed");
+    int currentHour = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"Hour"];
+    int currentMinute  = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"Minute"];
+    
+    
+    // get the date stored in _dateNotification
+    NSDate *notificationDate = [_datePickerNotification date];
+    NSCalendar *calendar = [NSCalendar currentCalendar];
+    NSDateComponents *components = [calendar components:(NSCalendarUnitHour | NSCalendarUnitMinute) fromDate:notificationDate];
+    int nextHour = (int) [components hour];
+    int nextMinute = (int) [components minute];
+    
+    if(currentHour != nextHour || currentMinute != nextMinute)
+    {
+        NSLog(@"Notification time changed from %02d:%02d to %02d:%02d \n", currentHour, currentMinute,nextHour,nextMinute);
+        [self createPushNotification:nextHour m:nextMinute boAlert:YES];
+    }
+    
+    _toolbarNotification.hidden = YES;
+    _datePickerNotification.hidden = YES;
+}
+// *********************************************************************************
+
+// ******************************************************** CREATE PUSH NOTIFICATION
+-(void) createPushNotification:(int)hour m:(int)minute boAlert:(BOOL)alert
+{
+    // first of all, cancel all notifications
+    [[UNUserNotificationCenter currentNotificationCenter] removeAllPendingNotificationRequests];
+    
+    NSDate *now = [NSDate date];
+    NSCalendar *calendarN = [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
+    
+    // create the date from today at the desired hour
+    NSDateComponents *componentsN = [calendarN components:NSCalendarUnitYear|NSCalendarUnitMonth|NSCalendarUnitDay fromDate:now];
+    [componentsN setHour:hour];
+    [componentsN setMinute:minute];
+    
+    // create the LocalNotification
+    NSDateComponents *dateComponents = [[NSDateComponents alloc] init];
+    dateComponents.hour = hour;
+    dateComponents.minute = minute;
+    UNCalendarNotificationTrigger *trigger = [UNCalendarNotificationTrigger triggerWithDateMatchingComponents:dateComponents repeats:YES];
+    
+    UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
+    content.title = [NSString localizedUserNotificationStringForKey:@"A new quote is available" arguments:nil];
+    content.body = [NSString localizedUserNotificationStringForKey:@"Open the app to see it"
+                                                         arguments:nil];
+    content.sound = [UNNotificationSound defaultSound];
+    NSInteger myValue = 1;
+    NSNumber *number = [NSNumber numberWithInteger: myValue];
+    content.badge = number;
+    
+    // request the notification
+    UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:@"Quote"
+                                                                          content:content trigger:trigger];
+    ///Schedule localNotification
+    UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+    [center addNotificationRequest:request withCompletionHandler:^(NSError * _Nullable error) {
+        if (!error)
+        {
+            
+            NSLog(@"NotificationRequest succeeded!\n");
+            
+            // store the hour and the minute
+            [[NSUserDefaults standardUserDefaults]setInteger:hour forKey:@"Hour"];
+            [[NSUserDefaults standardUserDefaults]setInteger:minute forKey:@"Minute"];
+            
+            // send a confirmation alert only the current notification is not the default notification
+            if( alert == YES )
+            {
+                NSString *message = [[NSString alloc]init];
+                
+                if(hour < 10 && minute < 10)
+                    message = [NSString stringWithFormat:@"Notification time changed successfully to %02d:%02d",hour,minute];
+                
+                if(hour > 9 && minute > 9)
+                    message = [NSString stringWithFormat:@"Notification time changed successfully to %d:%d", hour, minute];
+                
+                if(hour < 10 && minute > 9)
+                    message = [NSString stringWithFormat:@"Notification time changed successfully to %02d:%d",hour,minute];
+                
+                if(hour > 9 && minute < 10)
+                    message = [NSString stringWithFormat:@"Notification time changed successfully to %d:%02d",hour,minute];
+                
+                // send a confirmation alert
+                UIAlertController * alert = [UIAlertController
+                                             alertControllerWithTitle:@"Confirmation"
+                                             message:message
+                                             preferredStyle:UIAlertControllerStyleAlert];
+                // create color for toolbar
+                UIColor *backgroundColorAlert = [UIColor colorWithRed:130.0f/255.0f
+                                                                green:130.0f/255.0f
+                                                                 blue:130.0f/255.0f
+                                                                alpha:1.0f];
+                UIView *firstSubview = alert.view.subviews.firstObject;
+                UIView *alertContentView = firstSubview.subviews.firstObject;
+                for (UIView *subSubView in alertContentView.subviews) { //This is main catch
+                    subSubView.backgroundColor = backgroundColorAlert;//Here you change background
+                }
+                
+                UIAlertAction* okButton = [UIAlertAction
+                                           actionWithTitle:@"Great"
+                                           style:UIAlertActionStyleDefault
+                                           handler:^(UIAlertAction * action) {
+                                               //Handle no, thanks button
+                                           }];
+                
+                [alert addAction:okButton];
+                [self presentViewController:alert animated:YES completion:nil];
+                [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
+                                                         green:165.0f/255.0f
+                                                          blue:0.0f/255.0f
+                                                         alpha:1.0f]];
+            }
+            
+        }
+        else
+        {
+            NSLog(@"NotificationRequest failed!\n");
+            
+            // send a confirmation alert
+            UIAlertController * alert = [UIAlertController
+                                         alertControllerWithTitle:@"Confirmation"
+                                         message:@"Failed to change the notification time. Please try again"
+                                         preferredStyle:UIAlertControllerStyleAlert];
+            // create color for toolbar
+            UIColor *backgroundColorAlert = [UIColor colorWithRed:130.0f/255.0f
+                                                            green:130.0f/255.0f
+                                                             blue:130.0f/255.0f
+                                                            alpha:1.0f];
+            UIView *firstSubview = alert.view.subviews.firstObject;
+            UIView *alertContentView = firstSubview.subviews.firstObject;
+            for (UIView *subSubView in alertContentView.subviews) { //This is main catch
+                subSubView.backgroundColor = backgroundColorAlert;//Here you change background
+            }
+            
+            UIAlertAction* okButton = [UIAlertAction
+                                       actionWithTitle:@"OK"
+                                       style:UIAlertActionStyleDefault
+                                       handler:^(UIAlertAction * action) {
+                                           //Handle no, thanks button
+                                       }];
+            
+            [alert addAction:okButton];
+            [self presentViewController:alert animated:YES completion:nil];
+            [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
+                                                     green:165.0f/255.0f
+                                                      blue:0.0f/255.0f
+                                                     alpha:1.0f]];
+            
+            
+        }
+    }];
+    
+}
+// *********************************************************************************
+
+// ******************************************************** SAVE BUTTON PRESSED
+-(IBAction)saveButtonPressed:(id)sender
+{
+    NSLog(@"Facebook button is pressed \n");
+    
+    if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
+        UIGraphicsBeginImageContextWithOptions(self.view.bounds.size, NO, [UIScreen mainScreen].scale);
+    } else {
+        UIGraphicsBeginImageContext(self.view.bounds.size);
+    }
+    
+    _mainToolbar.hidden = YES;
+    [self.view.layer renderInContext:UIGraphicsGetCurrentContext()];
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    _mainToolbar.hidden = NO;
+    
+    NSData *imageData = UIImagePNGRepresentation(image);
+    if (imageData)
+    {
+        //[imageData writeToFile:@"screenshot.png" atomically:YES];
+        UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil);
+        NSLog(@"Imaged saved succesfully \n");
+        
+        // send a confirmation alert
+        UIAlertController * alert = [UIAlertController
+                                     alertControllerWithTitle:@"Confirmation"
+                                     message:@"Photo saved successfully. Please check your gallery"
+                                     preferredStyle:UIAlertControllerStyleAlert];
+        // create color for toolbar
+        UIColor *backgroundColorAlert = [UIColor colorWithRed:130.0f/255.0f
+                                                        green:130.0f/255.0f
+                                                         blue:130.0f/255.0f
+                                                        alpha:1.0f];
+        UIView *firstSubview = alert.view.subviews.firstObject;
+        UIView *alertContentView = firstSubview.subviews.firstObject;
+        for (UIView *subSubView in alertContentView.subviews) { //This is main catch
+            subSubView.backgroundColor = backgroundColorAlert;//Here you change background
+        }
+        
+        UIAlertAction* okButton = [UIAlertAction
+                                   actionWithTitle:@"Great"
+                                   style:UIAlertActionStyleDefault
+                                   handler:^(UIAlertAction * action) {
+                                       //Handle no, thanks button
+                                   }];
+        
+        [alert addAction:okButton];
+        [self presentViewController:alert animated:YES completion:nil];
+        [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
+                                                 green:165.0f/255.0f
+                                                  blue:0.0f/255.0f
+                                                 alpha:1.0f]];
+    }
+    else
+    {
+        NSLog(@"error while taking screenshot");
+        
+        // send a confirmation alert
+        UIAlertController * alert = [UIAlertController
+                                     alertControllerWithTitle:@"Error"
+                                     message:@"Error while saving the photo. Please try again"
+                                     preferredStyle:UIAlertControllerStyleAlert];
+        
+        UIAlertAction* okButton = [UIAlertAction
+                                   actionWithTitle:@"OK"
+                                   style:UIAlertActionStyleDefault
+                                   handler:^(UIAlertAction * action) {
+                                       //Handle no, thanks button
+                                   }];
+        
+        [alert addAction:okButton];
+        [self presentViewController:alert animated:YES completion:nil];
+        [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
+                                                 green:165.0f/255.0f
+                                                  blue:0.0f/255.0f
+                                                 alpha:1.0f]];
+    }
+}
+// *********************************************************************************
+
+// ******************************************************** FACEBOOK BUTTON PRESSED
+-(IBAction)facebookButtonPressed:(id)sender
+{
+    NSLog(@"Facebook button is pressed\n");
+    
+    // get current quote screenshot
+    if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
+        UIGraphicsBeginImageContextWithOptions(self.view.bounds.size, NO, [UIScreen mainScreen].scale);
+    } else {
+        UIGraphicsBeginImageContext(self.view.bounds.size);
+    }
+    
+    _mainToolbar.hidden = YES;
+    [self.view.layer renderInContext:UIGraphicsGetCurrentContext()];
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    _mainToolbar.hidden = NO;
+    
+    // post on facebook
+    if ([SLComposeViewController isAvailableForServiceType:SLServiceTypeFacebook])
+    {
+        SLComposeViewController *facebookShare = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeFacebook];
+        
+        NSString *shareText = @"Quote of the day by 'Motivation from Steve Jobs' App!";
+        [facebookShare setInitialText:shareText];
+        [facebookShare addImage:image];
+        
+        [facebookShare setCompletionHandler:^(SLComposeViewControllerResult result)
+         {
+             
+             switch (result) {
+                 case SLComposeViewControllerResultCancelled:
+                     NSLog(@"Post Canceled");
+                     break;
+                 case SLComposeViewControllerResultDone:
+                     NSLog(@"Post Sucessful");
+                     break;
+                 default:
+                     break;
+             }
+         }];
+        
+        [self presentViewController:facebookShare animated:YES completion:nil];
+    }
+}
+// *********************************************************************************
+
+// ******************************************************** CANCEL NOTIFICATION HOUR
+-(void) cancelNotificationHour
+{
+    NSLog(@"Notification hour canceled \n");
+    
+    _toolbarNotification.hidden = YES;
+    _datePickerNotification.hidden = YES;
+}
+// *********************************************************************************
 
 // ******************************************************** HIDE THE STATUS BAR (time, battery, etc)
 -(BOOL)prefersStatusBarHidden{

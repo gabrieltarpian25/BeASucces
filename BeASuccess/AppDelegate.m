@@ -8,6 +8,9 @@
 
 #import "AppDelegate.h"
 
+///    Notification become independent from UIKit
+@import UserNotifications;
+
 @interface AppDelegate ()
 
 @end
@@ -16,8 +19,22 @@
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+ 
+    // register user for notification settings
+    UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+    [center requestAuthorizationWithOptions:(UNAuthorizationOptionBadge | UNAuthorizationOptionSound | UNAuthorizationOptionAlert)
+                          completionHandler:^(BOOL granted, NSError * _Nullable error) {
+                              if (!error) {
+                                  NSLog(@"request authorization succeeded!");
+                                  // [self showAlert];
+                              }
+                          }];
+    
+    [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
+    
     // Override point for customization after application launch.
     return YES;
+    
 }
 
 
