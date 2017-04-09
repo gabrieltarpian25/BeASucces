@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		585E175A1E9A887400B0C5AD /* iAd.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 585E17591E9A887400B0C5AD /* iAd.framework */; };
 		58DA94131E59FAC00054075E /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 58DA94121E59FAC00054075E /* libsqlite3.tbd */; settings = {ATTRIBUTES = (Required, ); }; };
 		58E9BCEC1E3FB8EF00D83438 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 58E9BCEB1E3FB8EF00D83438 /* main.m */; };
 		58E9BCEF1E3FB8EF00D83438 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 58E9BCEE1E3FB8EF00D83438 /* AppDelegate.m */; };
@@ -37,6 +38,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		585E17591E9A887400B0C5AD /* iAd.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = iAd.framework; path = System/Library/Frameworks/iAd.framework; sourceTree = SDKROOT; };
 		58DA94121E59FAC00054075E /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		58E9BCE71E3FB8EF00D83438 /* BeASuccess.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BeASuccess.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		58E9BCEB1E3FB8EF00D83438 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -63,6 +65,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				585E175A1E9A887400B0C5AD /* iAd.framework in Frameworks */,
 				58DA94131E59FAC00054075E /* libsqlite3.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -87,6 +90,7 @@
 		58DA94111E59FABF0054075E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				585E17591E9A887400B0C5AD /* iAd.framework */,
 				58DA94121E59FAC00054075E /* libsqlite3.tbd */,
 			);
 			name = Frameworks;

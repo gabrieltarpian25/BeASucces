@@ -7,32 +7,36 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <iAd/iAd.h>
 
 ///    Notification become independent from UIKit
 @import UserNotifications;
 
-@interface ViewController : UIViewController
+@interface ViewController : UIViewController <ADBannerViewDelegate>
 
-@property (nonatomic, retain) IBOutlet UITextView  *textQuote;
-@property (nonatomic, retain) IBOutlet UITextView  *textAuthor;
+// text for displaying the quote and text for displaying the copyright
+@property (nonatomic, strong) IBOutlet UITextView  *textQuote;
+@property (nonatomic, strong) IBOutlet UITextView  *textAuthor;
 
 // bar buttons for main toolbar
-@property (nonatomic, retain) IBOutlet UIBarButtonItem   *barBtnSettings;
-@property (nonatomic, retain) IBOutlet UIBarButtonItem   *barBtnSave;
-@property (nonatomic, retain) IBOutlet UIBarButtonItem   *barBtnFacebook;
+@property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnSettings;
+@property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnSave;
+@property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnFacebook;
+@property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnTwitter;
 
 // bar buttons for right arrow toolbar
-@property (nonatomic, retain) IBOutlet UIBarButtonItem   *barBtnArrowRight;
-@property (nonatomic, retain) IBOutlet UIBarButtonItem   *barBtnArrowLeft;
+@property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnArrowRight;
+@property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnArrowLeft;
 
 // toolbar that contains the buttons for saving the quote, sharing it on facebook, notification time, etc
-@property (nonatomic, retain) IBOutlet UIToolbar         *mainToolbar;
+@property (nonatomic, strong) IBOutlet UIToolbar         *mainToolbar;
 
 // toolbar that contains the right arrow
-@property (nonatomic, retain) IBOutlet UIToolbar         *rightArrowToolbar;
+@property (nonatomic, strong) IBOutlet UIToolbar         *rightArrowToolbar;
 
-@property (nonatomic, retain) IBOutlet UIDatePicker      *datePickerNotification;
-@property (nonatomic, retain) IBOutlet UIToolbar         *toolbarNotification;
+@property (nonatomic, strong) IBOutlet UIDatePicker      *datePickerNotification;
+@property (nonatomic, strong) IBOutlet UIToolbar         *toolbarNotification;
+
 
 @end
 

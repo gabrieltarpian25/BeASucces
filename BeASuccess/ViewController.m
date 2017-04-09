@@ -34,15 +34,23 @@
     int width = screenRect.size.width;
     int height = screenRect.size.height;
     
+    // generate a random number between 1 and 5 which represents the quote id
+    srand(time(NULL));
+    int quoteId = rand() % 5;
+    int wallpaperId = rand() % 3;
+    wallpaperId++;
+    quoteId++;
+    
+    NSString *imageName = [NSString stringWithFormat:@"Wallpaper_%d",wallpaperId];
+    
     // Create wallpaper
     UIImageView *imageHolder = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, width, height)];
-    UIImage *image = [UIImage imageNamed:@"Wallpaper_1"];
+    UIImage *image = [UIImage imageNamed:imageName];
     imageHolder.image = image;
-    // imageHolder.alpha = 0.3;
     
     // create black overlay
     UIView *overlay = [[UIView alloc] initWithFrame:CGRectMake(0, 0, width, height)];
-    [overlay setBackgroundColor:[UIColor colorWithRed:0 green:0 blue:0 alpha:0.75]];
+    [overlay setBackgroundColor:[UIColor colorWithRed:0 green:0 blue:0 alpha:0.7]];
     [imageHolder addSubview:overlay];
      [self.view addSubview:imageHolder];
     
@@ -56,18 +64,13 @@
     int labelHeight = height - labelPosY *2.5;
     _textQuote = [[UITextView alloc]initWithFrame:CGRectMake(labelPosX, labelPosY,labelWidth,labelHeight)];
     
-    // generate a random number between 1 and 5 which represents the quote id
-    srand(time(NULL));
-    int r = rand() % 5;
-    r++;
-    
     // get quote, author and create the final string
-    NSString *quote = [[DBManager getSharedInstance] getQuoteByID:r];
-    NSString *author = [[DBManager getSharedInstance] getAuthorByID:r];
+    NSString *quote = [[DBManager getSharedInstance] getQuoteByID:quoteId];
+    NSString *author = [[DBManager getSharedInstance] getAuthorByID:quoteId];
     NSString *finalString = [NSString stringWithFormat:@"%@ \n\n\n%@", quote, author];
     
     // create the font
-    UIFont *textViewfont = [UIFont fontWithName:@"Papyrus-Condensed" size:28];
+    UIFont *textViewfont = [UIFont fontWithName:@"Noteworthy-Bold" size:25];
     
     // text color
     UIColor *textColor = [UIColor colorWithRed:255.0f/255.0f
@@ -101,9 +104,36 @@
         [self createPushNotification:9 m:0 boAlert:NO];
         [[NSUserDefaults standardUserDefaults]setBool:YES forKey:@"SecondTime"];
     }
+    
+    // create positions for copyright text
+    int textPosX = width - 120;
+    int textPosY;
+    if( height < 500)
+        textPosY =  height - 35; // Air, Air 2, Pro ( 9.7 ),
+    else textPosY = height - 40;
+    int textWidth = width - textPosX;
+    int textHeight = height - textPosY;
+    _textAuthor = [[UITextView alloc]initWithFrame:CGRectMake(textPosX, textPosY,textWidth,textHeight)];
+    
+    // create the author text
+    NSString *textCopyright = [NSString stringWithFormat:@"Be A Success\n%cTarpian Gabriel",169];
+    _textAuthor.text = textCopyright;
+    UIFont *textAuthorFont = [UIFont fontWithName:@"Noteworthy-Bold" size:10];
+    _textAuthor.font = textAuthorFont;
+    _textAuthor.textAlignment = NSTextAlignmentRight;
+    _textAuthor.backgroundColor = [UIColor clearColor];
+    _textAuthor.textColor = textColor;
+    [_textAuthor setUserInteractionEnabled:NO];
 
+    /*
+    // create the banner
+    int bannerPosX = 0;
+    int bannerPosY = height - 50;
+    initWithFrame:CGRectMake(bannerPosX, bannerPosY, width, height - bannerPosY)];
+     */
     
     [self.view addSubview:_textQuote];
+    [self.view addSubview:_textAuthor];
 }
 
 -(IBAction) showMainToolbar:(id)sender
@@ -235,9 +265,19 @@
     [btnFacebook setShowsTouchWhenHighlighted:TRUE];
     _barBtnFacebook = [[UIBarButtonItem alloc] initWithCustomView:btnFacebook];
     
+    // ************ Twitter button
+    UIImage *imgTwitter = [UIImage imageNamed:@"twitter.png"];
+    
+    UIButton *btnTwitter = [UIButton buttonWithType:UIButtonTypeCustom];
+    [btnTwitter addTarget:self action:@selector(twitterButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    btnTwitter.bounds = CGRectMake( 300, 5, 30, 30 );
+    [btnTwitter setImage:imgTwitter forState:UIControlStateNormal];
+    [btnTwitter setShowsTouchWhenHighlighted:TRUE];
+    _barBtnTwitter = [[UIBarButtonItem alloc] initWithCustomView:btnTwitter];
+    
     // make visible items on the toolbar
     UIBarButtonItem *flexibleSpace2 = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
-    NSArray *items2 = [NSArray arrayWithObjects: _barBtnArrowLeft, flexibleSpace2, _barBtnSettings, flexibleSpace2,_barBtnSave, flexibleSpace2,_barBtnFacebook, nil];
+    NSArray *items2 = [NSArray arrayWithObjects: _barBtnArrowLeft, flexibleSpace2, _barBtnSettings, flexibleSpace2, _barBtnSave,flexibleSpace2,  _barBtnFacebook, flexibleSpace2,  _barBtnTwitter, nil];
     [_mainToolbar setItems:items2 animated:YES];
     
     _mainToolbar.hidden = YES;
@@ -484,7 +524,7 @@
 // ******************************************************** SAVE BUTTON PRESSED
 -(IBAction)saveButtonPressed:(id)sender
 {
-    NSLog(@"Facebook button is pressed \n");
+    NSLog(@"Save button is pressed \n");
     
     if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
         UIGraphicsBeginImageContextWithOptions(self.view.bounds.size, NO, [UIScreen mainScreen].scale);
@@ -606,6 +646,144 @@
         
         [self presentViewController:facebookShare animated:YES completion:nil];
     }
+    else
+    {
+        NSLog(@"Facebook app not installed");
+        
+        // send a confirmation alert
+        UIAlertController * alert = [UIAlertController
+                                     alertControllerWithTitle:@"Error"
+                                     message:@"Error while connecting to your Facebook account. Please try again"
+                                     preferredStyle:UIAlertControllerStyleAlert];
+        
+        UIAlertAction* okButton = [UIAlertAction
+                                   actionWithTitle:@"OK"
+                                   style:UIAlertActionStyleDefault
+                                   handler:^(UIAlertAction * action) {
+                                       //Handle no, thanks button
+                                   }];
+        
+        [alert addAction:okButton];
+        [self presentViewController:alert animated:YES completion:nil];
+        [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
+                                                 green:165.0f/255.0f
+                                                  blue:0.0f/255.0f
+                                                 alpha:1.0f]];
+    }
+}
+// *********************************************************************************
+
+// ******************************************************** TWITTER BUTTON PRESSED
+-(IBAction)twitterButtonPressed:(id)sender
+{
+    NSLog(@"Twitter button is pressed\n");
+    
+    // get current quote screenshot
+    if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
+        UIGraphicsBeginImageContextWithOptions(self.view.bounds.size, NO, [UIScreen mainScreen].scale);
+    } else {
+        UIGraphicsBeginImageContext(self.view.bounds.size);
+    }
+    
+    _mainToolbar.hidden = YES;
+    [self.view.layer renderInContext:UIGraphicsGetCurrentContext()];
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    _mainToolbar.hidden = NO;
+    
+    // post on twitter
+    if ([SLComposeViewController isAvailableForServiceType:SLServiceTypeTwitter])
+    {
+        SLComposeViewController *twitterShare = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeTwitter];
+        
+        NSString *shareText = @"Quote of the day by 'BeASuccess' App!";
+        [twitterShare setInitialText:shareText];
+        [twitterShare addImage:image];
+        
+        [twitterShare setCompletionHandler:^(SLComposeViewControllerResult result)
+         {
+             
+             switch (result) {
+                 case SLComposeViewControllerResultCancelled:
+                 {
+                     NSLog(@"Post Canceled");
+                     // send a confirmation alert
+                     UIAlertController * alert = [UIAlertController
+                                                  alertControllerWithTitle:@"Error"
+                                                  message:@"Post Canceled"
+                                                  preferredStyle:UIAlertControllerStyleAlert];
+                     
+                     UIAlertAction* okButton = [UIAlertAction
+                                                actionWithTitle:@"OK"
+                                                style:UIAlertActionStyleDefault
+                                                handler:^(UIAlertAction * action) {
+                                                    //Handle no, thanks button
+                                                }];
+                     
+                     [alert addAction:okButton];
+                     [self presentViewController:alert animated:YES completion:nil];
+                     [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
+                                                              green:165.0f/255.0f
+                                                               blue:0.0f/255.0f
+                                                              alpha:1.0f]];
+                     break;
+                 }
+                 case SLComposeViewControllerResultDone:
+                 {
+                     NSLog(@"Post Sucessful");
+                     
+                     // send a confirmation alert
+                     UIAlertController * alert = [UIAlertController
+                                                  alertControllerWithTitle:@"Success"
+                                                  message:@"Post Sucessful"
+                                                  preferredStyle:UIAlertControllerStyleAlert];
+                     
+                     UIAlertAction* okButton = [UIAlertAction
+                                                actionWithTitle:@"OK"
+                                                style:UIAlertActionStyleDefault
+                                                handler:^(UIAlertAction * action) {
+                                                    //Handle no, thanks button
+                                                }];
+                     
+                     [alert addAction:okButton];
+                     [self presentViewController:alert animated:YES completion:nil];
+                     [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
+                                                              green:165.0f/255.0f
+                                                               blue:0.0f/255.0f
+                                                              alpha:1.0f]];
+                     break;
+                 }
+                 default:
+                     break;
+             }
+         }];
+        
+        [self presentViewController:twitterShare animated:YES completion:nil];
+    }
+    else
+    {
+        NSLog(@"Twitter app not installed");
+        
+        // send a confirmation alert
+        UIAlertController * alert = [UIAlertController
+                                     alertControllerWithTitle:@"Error"
+                                     message:@"Error while connecting to your Twitter account. Please try again"
+                                     preferredStyle:UIAlertControllerStyleAlert];
+        
+        UIAlertAction* okButton = [UIAlertAction
+                                   actionWithTitle:@"OK"
+                                   style:UIAlertActionStyleDefault
+                                   handler:^(UIAlertAction * action) {
+                                       //Handle no, thanks button
+                                   }];
+        
+        [alert addAction:okButton];
+        [self presentViewController:alert animated:YES completion:nil];
+        [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
+                                                 green:165.0f/255.0f
+                                                  blue:0.0f/255.0f
+                                                 alpha:1.0f]];
+    }
 }
 // *********************************************************************************
 
@@ -632,6 +810,5 @@
     tv.contentInset = UIEdgeInsetsMake(inset, tv.contentInset.left, inset, tv.contentInset.right);
 }
 // *********************************************************************************
-
 
 @end
