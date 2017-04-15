@@ -36,10 +36,8 @@
     
     // generate a random number between 1 and 5 which represents the quote id
     srand(time(NULL));
-    int quoteId = rand() % 5;
-    int wallpaperId = rand() % 3;
-    wallpaperId++;
-    quoteId++;
+    int quoteId = rand() % 5 + 1;
+    int wallpaperId = rand() % 2 + 2;
     
     NSString *imageName = [NSString stringWithFormat:@"Wallpaper_%d",wallpaperId];
     
@@ -116,7 +114,7 @@
     _textAuthor = [[UITextView alloc]initWithFrame:CGRectMake(textPosX, textPosY,textWidth,textHeight)];
     
     // create the author text
-    NSString *textCopyright = [NSString stringWithFormat:@"Be A Success\n%cTarpian Gabriel",169];
+    NSString *textCopyright = [NSString stringWithFormat:@"Be A Success\n%cGabriel Tarpian",169];
     _textAuthor.text = textCopyright;
     UIFont *textAuthorFont = [UIFont fontWithName:@"Noteworthy-Bold" size:10];
     _textAuthor.font = textAuthorFont;
@@ -132,8 +130,53 @@
     initWithFrame:CGRectMake(bannerPosX, bannerPosY, width, height - bannerPosY)];
      */
     
+    // add components to main view
     [self.view addSubview:_textQuote];
     [self.view addSubview:_textAuthor];
+    
+    // display the initial animation
+    [self displayInitialAnimation];
+}
+
+-(void) displayInitialAnimation
+{
+    // Get the screen width
+    CGRect screenRect = [[UIScreen mainScreen] bounds];
+    int width = screenRect.size.width;
+
+    // store the initial positions
+    int textQuotePosX = self.textQuote.frame.origin.x;
+    int textAuthorPosX = self.textAuthor.frame.origin.x;
+    int mainToolbarPosX = self.mainToolbar.frame.origin.x;
+    int rightArrowToolbarPosX = self.rightArrowToolbar.frame.origin.x;
+    
+    // set the negative origins of _textQuote, _textAuthor, mainToolbar and rightArrowToolbar
+    self.textQuote.frame = CGRectMake(width, self.textQuote.frame.origin.y, self.textQuote.frame.size.width,self.textQuote.frame.size.width);
+    
+    self.textAuthor.frame = CGRectMake(width, self.textAuthor.frame.origin.y, self.textAuthor.frame.size.width,self.textAuthor.frame.size.width);
+    
+    self.mainToolbar.frame = CGRectMake(0, self.mainToolbar.frame.origin.y, self.mainToolbar.frame.size.width, self.mainToolbar.frame.size.height);
+    
+    self.rightArrowToolbar.frame = CGRectMake(width, self.rightArrowToolbar.frame.origin.y, self.rightArrowToolbar.frame.size.width, self.rightArrowToolbar.frame.size.height);
+    
+    // create the animation
+    [UIView animateWithDuration:1.3
+                     animations:^(void)
+     {
+         // set the positive positions for textQuote and textAuthor
+         // set the negative origins of _textQuote and _textAuthor
+         self.textQuote.frame = CGRectMake(textQuotePosX, self.textQuote.frame.origin.y, self.textQuote.frame.size.width,self.textQuote.frame.size.width);
+         
+         self.textAuthor.frame = CGRectMake(textAuthorPosX, self.textAuthor.frame.origin.y, self.textAuthor.frame.size.width,self.textAuthor.frame.size.width);
+         
+         self.mainToolbar.frame = CGRectMake(mainToolbarPosX, self.mainToolbar.frame.origin.y, self.mainToolbar.frame.size.width, self.mainToolbar.frame.size.height);
+         
+         self.rightArrowToolbar.frame = CGRectMake(rightArrowToolbarPosX, self.rightArrowToolbar.frame.origin.y, self.rightArrowToolbar.frame.size.width, self.rightArrowToolbar.frame.size.height);
+         
+     }
+                     completion:^(BOOL finished)
+     {
+    }];
 }
 
 -(IBAction) showMainToolbar:(id)sender
@@ -149,7 +192,7 @@
     self.mainToolbar.hidden = NO;
     
     // create the animation
-    [UIView animateWithDuration:0.7
+    [UIView animateWithDuration:0.6
                      animations:^(void)
      {
          // hide right arrow
@@ -181,7 +224,7 @@
     self.rightArrowToolbar.hidden = NO;
     
     // create animation
-    [UIView animateWithDuration:0.7
+    [UIView animateWithDuration:0.6
                      animations:^(void)
      {
          // hide main toolbar
@@ -223,7 +266,7 @@
     
     // create the toolbar
     _mainToolbar = [[UIToolbar alloc] init];
-    _mainToolbar.frame = CGRectMake(0, 0, width, 40);
+    _mainToolbar.frame = CGRectMake(-width, 0, width, 40);
     
     // ************* Right arrow button
     UIImage *imgArrowLeft = [UIImage imageNamed:@"arrowLeft.png"];
@@ -260,7 +303,7 @@
     
     UIButton *btnFacebook = [UIButton buttonWithType:UIButtonTypeCustom];
     [btnFacebook addTarget:self action:@selector(facebookButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
-    btnFacebook.bounds = CGRectMake( 200, 5, 30, 30 );
+    btnFacebook.bounds = CGRectMake( 200, 5, 32, 32 );
     [btnFacebook setImage:imgFacebook forState:UIControlStateNormal];
     [btnFacebook setShowsTouchWhenHighlighted:TRUE];
     _barBtnFacebook = [[UIBarButtonItem alloc] initWithCustomView:btnFacebook];
@@ -270,7 +313,7 @@
     
     UIButton *btnTwitter = [UIButton buttonWithType:UIButtonTypeCustom];
     [btnTwitter addTarget:self action:@selector(twitterButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
-    btnTwitter.bounds = CGRectMake( 300, 5, 30, 30 );
+    btnTwitter.bounds = CGRectMake( 300, 5, 27, 27 );
     [btnTwitter setImage:imgTwitter forState:UIControlStateNormal];
     [btnTwitter setShowsTouchWhenHighlighted:TRUE];
     _barBtnTwitter = [[UIBarButtonItem alloc] initWithCustomView:btnTwitter];
@@ -279,8 +322,6 @@
     UIBarButtonItem *flexibleSpace2 = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
     NSArray *items2 = [NSArray arrayWithObjects: _barBtnArrowLeft, flexibleSpace2, _barBtnSettings, flexibleSpace2, _barBtnSave,flexibleSpace2,  _barBtnFacebook, flexibleSpace2,  _barBtnTwitter, nil];
     [_mainToolbar setItems:items2 animated:YES];
-    
-    _mainToolbar.hidden = YES;
     
     // background color for rightArrowToolbar
     [self.rightArrowToolbar setBackgroundImage:[UIImage new]
