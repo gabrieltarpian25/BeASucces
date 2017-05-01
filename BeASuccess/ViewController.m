@@ -34,12 +34,10 @@
     int width = screenRect.size.width;
     int height = screenRect.size.height;
     
-    // generate a random number between 1 and 5 which represents the quote id
-    srand(time(NULL));
-    int quoteId = rand() % 5 + 1;
-    int wallpaperId = rand() % 2 + 2;
+    // generate a random number between 1 and 14 which represents the quote id
+    int quoteId = arc4random_uniform(14) + 1;
     
-    NSString *imageName = [NSString stringWithFormat:@"Wallpaper_%d",wallpaperId];
+    NSString *imageName = [[DBManager getSharedInstance] getCategoryByID:quoteId];
     
     // Create wallpaper
     UIImageView *imageHolder = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, width, height)];
@@ -59,13 +57,13 @@
     int labelPosX = 10;
     int labelPosY = height / 8;
     int labelWidth = width - labelPosX;
-    int labelHeight = height - labelPosY *2.5;
+    int labelHeight = height - labelPosY * 2;
     _textQuote = [[UITextView alloc]initWithFrame:CGRectMake(labelPosX, labelPosY,labelWidth,labelHeight)];
     
     // get quote, author and create the final string
     NSString *quote = [[DBManager getSharedInstance] getQuoteByID:quoteId];
     NSString *author = [[DBManager getSharedInstance] getAuthorByID:quoteId];
-    NSString *finalString = [NSString stringWithFormat:@"%@ \n\n\n%@", quote, author];
+    NSString *finalString = [NSString stringWithFormat:@"%@\n\n%@", quote, author];
     
     // create the font
     UIFont *textViewfont = [UIFont fontWithName:@"Noteworthy-Bold" size:25];
@@ -151,9 +149,9 @@
     int rightArrowToolbarPosX = self.rightArrowToolbar.frame.origin.x;
     
     // set the negative origins of _textQuote, _textAuthor, mainToolbar and rightArrowToolbar
-    self.textQuote.frame = CGRectMake(width, self.textQuote.frame.origin.y, self.textQuote.frame.size.width,self.textQuote.frame.size.width);
+    self.textQuote.frame = CGRectMake(width, self.textQuote.frame.origin.y, self.textQuote.frame.size.width,self.textQuote.frame.size.height);
     
-    self.textAuthor.frame = CGRectMake(width, self.textAuthor.frame.origin.y, self.textAuthor.frame.size.width,self.textAuthor.frame.size.width);
+    self.textAuthor.frame = CGRectMake(width, self.textAuthor.frame.origin.y, self.textAuthor.frame.size.width,self.textAuthor.frame.size.height);
     
     self.mainToolbar.frame = CGRectMake(0, self.mainToolbar.frame.origin.y, self.mainToolbar.frame.size.width, self.mainToolbar.frame.size.height);
     
@@ -165,9 +163,9 @@
      {
          // set the positive positions for textQuote and textAuthor
          // set the negative origins of _textQuote and _textAuthor
-         self.textQuote.frame = CGRectMake(textQuotePosX, self.textQuote.frame.origin.y, self.textQuote.frame.size.width,self.textQuote.frame.size.width);
+         self.textQuote.frame = CGRectMake(textQuotePosX, self.textQuote.frame.origin.y, self.textQuote.frame.size.width,self.textQuote.frame.size.height);
          
-         self.textAuthor.frame = CGRectMake(textAuthorPosX, self.textAuthor.frame.origin.y, self.textAuthor.frame.size.width,self.textAuthor.frame.size.width);
+         self.textAuthor.frame = CGRectMake(textAuthorPosX, self.textAuthor.frame.origin.y, self.textAuthor.frame.size.width,self.textAuthor.frame.size.height);
          
          self.mainToolbar.frame = CGRectMake(mainToolbarPosX, self.mainToolbar.frame.origin.y, self.mainToolbar.frame.size.width, self.mainToolbar.frame.size.height);
          
@@ -683,6 +681,8 @@
                  default:
                      break;
              }
+             
+             [self dismissViewControllerAnimated:YES completion:nil];
          }];
         
         [self presentViewController:facebookShare animated:YES completion:nil];
@@ -732,75 +732,36 @@
     UIGraphicsEndImageContext();
     _mainToolbar.hidden = NO;
     
-    // post on twitter
+    // __block BOOL boSuccess = NO;
+    
+    // post on Twitter
     if ([SLComposeViewController isAvailableForServiceType:SLServiceTypeTwitter])
     {
-        SLComposeViewController *twitterShare = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeTwitter];
+        SLComposeViewController *tweet = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeTwitter];
         
-        NSString *shareText = @"Quote of the day by 'BeASuccess' App!";
-        [twitterShare setInitialText:shareText];
-        [twitterShare addImage:image];
+        [tweet setInitialText:@"Quote of the day by 'BeASuccess' app! #BeASuccess"];
+        [tweet addImage:image];
         
-        [twitterShare setCompletionHandler:^(SLComposeViewControllerResult result)
+        [tweet setCompletionHandler:^(SLComposeViewControllerResult result)
          {
              
              switch (result) {
                  case SLComposeViewControllerResultCancelled:
-                 {
                      NSLog(@"Post Canceled");
-                     // send a confirmation alert
-                     UIAlertController * alert = [UIAlertController
-                                                  alertControllerWithTitle:@"Error"
-                                                  message:@"Post Canceled"
-                                                  preferredStyle:UIAlertControllerStyleAlert];
-                     
-                     UIAlertAction* okButton = [UIAlertAction
-                                                actionWithTitle:@"OK"
-                                                style:UIAlertActionStyleDefault
-                                                handler:^(UIAlertAction * action) {
-                                                    //Handle no, thanks button
-                                                }];
-                     
-                     [alert addAction:okButton];
-                     [self presentViewController:alert animated:YES completion:nil];
-                     [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
-                                                              green:165.0f/255.0f
-                                                               blue:0.0f/255.0f
-                                                              alpha:1.0f]];
                      break;
-                 }
                  case SLComposeViewControllerResultDone:
-                 {
                      NSLog(@"Post Sucessful");
-                     
-                     // send a confirmation alert
-                     UIAlertController * alert = [UIAlertController
-                                                  alertControllerWithTitle:@"Success"
-                                                  message:@"Post Sucessful"
-                                                  preferredStyle:UIAlertControllerStyleAlert];
-                     
-                     UIAlertAction* okButton = [UIAlertAction
-                                                actionWithTitle:@"OK"
-                                                style:UIAlertActionStyleDefault
-                                                handler:^(UIAlertAction * action) {
-                                                    //Handle no, thanks button
-                                                }];
-                     
-                     [alert addAction:okButton];
-                     [self presentViewController:alert animated:YES completion:nil];
-                     [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
-                                                              green:165.0f/255.0f
-                                                               blue:0.0f/255.0f
-                                                              alpha:1.0f]];
                      break;
-                 }
                  default:
                      break;
              }
+             
+             [self dismissViewControllerAnimated:YES completion:nil];
          }];
         
-        [self presentViewController:twitterShare animated:YES completion:nil];
+        [self presentViewController:tweet animated:YES completion:nil];
     }
+
     else
     {
         NSLog(@"Twitter app not installed");

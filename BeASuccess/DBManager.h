@@ -22,7 +22,7 @@
 -(BOOL) createDB;
 
 // insert data into database
--(BOOL) insertData:(int)quoteId author:(NSString*)author quote:(NSString*)quote;
+-(BOOL) insertData:(int)quoteId author:(NSString*)author quote:(NSString*)quote category:(NSString*)category;
 
 // populate the database
 -(BOOL) populateDatabase;
@@ -32,4 +32,8 @@
 
 // find the author by id
 -(NSString*) getAuthorByID:(int)quoteId;
+
+// find the author by id
+-(NSString*) getCategoryByID:(int)quoteId;
+
 @end
