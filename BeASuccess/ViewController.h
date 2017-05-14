@@ -9,6 +9,10 @@
 #import <UIKit/UIKit.h>
 #import <iAd/iAd.h>
 
+// Google ads
+@import GoogleMobileAds;
+@class GADBannerView;
+
 ///    Notification become independent from UIKit
 @import UserNotifications;
 
@@ -17,6 +21,9 @@
 // text for displaying the quote and text for displaying the copyright
 @property (nonatomic, strong) IBOutlet UITextView  *textQuote;
 @property (nonatomic, strong) IBOutlet UITextView  *textAuthor;
+
+// test property for ad banner
+@property (nonatomic, strong) IBOutlet GADBannerView  *bannerView;
 
 // bar buttons for main toolbar
 @property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnSettings;

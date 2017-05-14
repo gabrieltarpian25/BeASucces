@@ -48,15 +48,15 @@
     UIView *overlay = [[UIView alloc] initWithFrame:CGRectMake(0, 0, width, height)];
     [overlay setBackgroundColor:[UIColor colorWithRed:0 green:0 blue:0 alpha:0.7]];
     [imageHolder addSubview:overlay];
-     [self.view addSubview:imageHolder];
+    [self.view addSubview:imageHolder];
     
     // create toolbars
     [self vCreateToolbars:width];
     
     // creating the quote text label
-    int labelPosX = 10;
-    int labelPosY = height / 8;
-    int labelWidth = width - labelPosX;
+    int labelPosX = 5;
+    int labelPosY = height / 10;
+    int labelWidth = width - labelPosX * 2;
     int labelHeight = height - labelPosY * 2;
     _textQuote = [[UITextView alloc]initWithFrame:CGRectMake(labelPosX, labelPosY,labelWidth,labelHeight)];
     
@@ -73,12 +73,12 @@
                                          green:165.0f/255.0f
                                           blue:0.0f/255.0f
                                          alpha:1.0f];
-
+    
     // text color
     UIColor *textBackgroundColor = [UIColor colorWithRed:255.0f/255.0f
-                                         green:165.0f/255.0f
-                                          blue:0.0f/255.0f
-                                         alpha:0.0f];
+                                                   green:165.0f/255.0f
+                                                    blue:0.0f/255.0f
+                                                   alpha:0.0f];
     
     
     // Assign quote to label
@@ -120,17 +120,29 @@
     _textAuthor.backgroundColor = [UIColor clearColor];
     _textAuthor.textColor = textColor;
     [_textAuthor setUserInteractionEnabled:NO];
-
-    /*
+    
     // create the banner
     int bannerPosX = 0;
-    int bannerPosY = height - 50;
-    initWithFrame:CGRectMake(bannerPosX, bannerPosY, width, height - bannerPosY)];
-     */
+    int bannerPosY = self.textQuote.frame.origin.y + self.textQuote.frame.size.height;
+    int bannerWidth = width;
+    int bannerHeight = height - bannerPosY;
+    
+    // create the banner view
+    _bannerView = [[GADBannerView alloc]initWithFrame:CGRectMake(bannerPosX, bannerPosY,bannerWidth,bannerHeight)];
+    
+    self.bannerView.adUnitID = @"ca-app-pub-7014753020131070/3584035347";
+    self.bannerView.rootViewController = self;
+    GADRequest *request = [GADRequest request];
+    
+    // this is used only for testing the device
+    request.testDevices = @[ @"4892eadeb8eaff1d5ecc53641d4e6cfe" ];
+    
+    [self.bannerView loadRequest:request];
     
     // add components to main view
     [self.view addSubview:_textQuote];
     [self.view addSubview:_textAuthor];
+    [self.view addSubview:_bannerView];
     
     // display the initial animation
     [self displayInitialAnimation];
@@ -141,12 +153,13 @@
     // Get the screen width
     CGRect screenRect = [[UIScreen mainScreen] bounds];
     int width = screenRect.size.width;
-
+    
     // store the initial positions
     int textQuotePosX = self.textQuote.frame.origin.x;
     int textAuthorPosX = self.textAuthor.frame.origin.x;
     int mainToolbarPosX = self.mainToolbar.frame.origin.x;
     int rightArrowToolbarPosX = self.rightArrowToolbar.frame.origin.x;
+    int bannerViewPosX = self.bannerView.frame.origin.x;
     
     // set the negative origins of _textQuote, _textAuthor, mainToolbar and rightArrowToolbar
     self.textQuote.frame = CGRectMake(width, self.textQuote.frame.origin.y, self.textQuote.frame.size.width,self.textQuote.frame.size.height);
@@ -156,6 +169,8 @@
     self.mainToolbar.frame = CGRectMake(0, self.mainToolbar.frame.origin.y, self.mainToolbar.frame.size.width, self.mainToolbar.frame.size.height);
     
     self.rightArrowToolbar.frame = CGRectMake(width, self.rightArrowToolbar.frame.origin.y, self.rightArrowToolbar.frame.size.width, self.rightArrowToolbar.frame.size.height);
+    
+    self.bannerView.frame = CGRectMake(width, self.bannerView.frame.origin.y, self.bannerView.frame.size.width, self.bannerView.frame.size.height);
     
     // create the animation
     [UIView animateWithDuration:1.3
@@ -171,10 +186,13 @@
          
          self.rightArrowToolbar.frame = CGRectMake(rightArrowToolbarPosX, self.rightArrowToolbar.frame.origin.y, self.rightArrowToolbar.frame.size.width, self.rightArrowToolbar.frame.size.height);
          
+         self.bannerView.frame = CGRectMake(bannerViewPosX, self.bannerView.frame.origin.y, self.bannerView.frame.size.width, self.bannerView.frame.size.height);
+         
+         
      }
                      completion:^(BOOL finished)
      {
-    }];
+     }];
 }
 
 -(IBAction) showMainToolbar:(id)sender
@@ -323,14 +341,14 @@
     
     // background color for rightArrowToolbar
     [self.rightArrowToolbar setBackgroundImage:[UIImage new]
-                  forToolbarPosition:UIToolbarPositionAny
-                          barMetrics:UIBarMetricsDefault];
+                            forToolbarPosition:UIToolbarPositionAny
+                                    barMetrics:UIBarMetricsDefault];
     _rightArrowToolbar.barTintColor = [UIColor clearColor];
     
     // background color for main toolbar
     [self.mainToolbar setBackgroundImage:[UIImage new]
-                            forToolbarPosition:UIToolbarPositionAny
-                                    barMetrics:UIBarMetricsDefault];
+                      forToolbarPosition:UIToolbarPositionAny
+                              barMetrics:UIBarMetricsDefault];
     _mainToolbar.barTintColor = [UIColor clearColor];
     
     [self.view addSubview:_rightArrowToolbar];
@@ -572,10 +590,12 @@
     }
     
     _mainToolbar.hidden = YES;
+    _bannerView.hidden = YES;
     [self.view.layer renderInContext:UIGraphicsGetCurrentContext()];
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     _mainToolbar.hidden = NO;
+    _bannerView.hidden = NO;
     
     NSData *imageData = UIImagePNGRepresentation(image);
     if (imageData)
@@ -654,17 +674,19 @@
     }
     
     _mainToolbar.hidden = YES;
+    _bannerView.hidden = YES;
     [self.view.layer renderInContext:UIGraphicsGetCurrentContext()];
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     _mainToolbar.hidden = NO;
+    _bannerView.hidden = NO;
     
     // post on facebook
     if ([SLComposeViewController isAvailableForServiceType:SLServiceTypeFacebook])
     {
         SLComposeViewController *facebookShare = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeFacebook];
         
-        NSString *shareText = @"Quote of the day by 'Motivation from Steve Jobs' App!";
+        NSString *shareText = @"Quote of the day by 'BeASuccess' app! #BeASuccess";
         [facebookShare setInitialText:shareText];
         [facebookShare addImage:image];
         
@@ -727,19 +749,20 @@
     }
     
     _mainToolbar.hidden = YES;
+    _bannerView.hidden = YES;
     [self.view.layer renderInContext:UIGraphicsGetCurrentContext()];
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     _mainToolbar.hidden = NO;
+    _bannerView.hidden = NO;
     
-    // __block BOOL boSuccess = NO;
-    
-    // post on Twitter
+    // post on twitter
     if ([SLComposeViewController isAvailableForServiceType:SLServiceTypeTwitter])
     {
         SLComposeViewController *tweet = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeTwitter];
         
-        [tweet setInitialText:@"Quote of the day by 'BeASuccess' app! #BeASuccess"];
+        NSString *shareText = @"Quote of the day by 'BeASuccess' app! #BeASuccess";
+        [tweet setInitialText:shareText];
         [tweet addImage:image];
         
         [tweet setCompletionHandler:^(SLComposeViewControllerResult result)
@@ -756,12 +779,12 @@
                      break;
              }
              
-             [self dismissViewControllerAnimated:YES completion:nil];
+             // [self dismissViewControllerAnimated:YES completion:nil];
          }];
         
         [self presentViewController:tweet animated:YES completion:nil];
     }
-
+    
     else
     {
         NSLog(@"Twitter app not installed");
