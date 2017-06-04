@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		58267D1B1EC87D1600B49105 /* GoogleMobileAds.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 58267D1A1EC87D1600B49105 /* GoogleMobileAds.framework */; };
 		585E175A1E9A887400B0C5AD /* iAd.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 585E17591E9A887400B0C5AD /* iAd.framework */; };
+		587092AA1EE2BBD6005ECEC8 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = 587092A91EE2BBD6005ECEC8 /* Reachability.m */; };
 		58DA94131E59FAC00054075E /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 58DA94121E59FAC00054075E /* libsqlite3.tbd */; settings = {ATTRIBUTES = (Required, ); }; };
 		58E9BCEC1E3FB8EF00D83438 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 58E9BCEB1E3FB8EF00D83438 /* main.m */; };
 		58E9BCEF1E3FB8EF00D83438 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 58E9BCEE1E3FB8EF00D83438 /* AppDelegate.m */; };
@@ -41,6 +42,8 @@
 /* Begin PBXFileReference section */
 		58267D1A1EC87D1600B49105 /* GoogleMobileAds.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = GoogleMobileAds.framework; sourceTree = "<group>"; };
 		585E17591E9A887400B0C5AD /* iAd.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = iAd.framework; path = System/Library/Frameworks/iAd.framework; sourceTree = SDKROOT; };
+		587092A81EE2BBD6005ECEC8 /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Reachability.h; path = ../Reachability.h; sourceTree = "<group>"; };
+		587092A91EE2BBD6005ECEC8 /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Reachability.m; path = ../Reachability.m; sourceTree = "<group>"; };
 		58DA94121E59FAC00054075E /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		58E9BCE71E3FB8EF00D83438 /* BeASuccess.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BeASuccess.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		58E9BCEB1E3FB8EF00D83438 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -128,6 +131,8 @@
 				58E9BCEE1E3FB8EF00D83438 /* AppDelegate.m */,
 				58E9BCF01E3FB8EF00D83438 /* ViewController.h */,
 				58E9BCF11E3FB8EF00D83438 /* ViewController.m */,
+				587092A81EE2BBD6005ECEC8 /* Reachability.h */,
+				587092A91EE2BBD6005ECEC8 /* Reachability.m */,
 				58E9BD1D1E3FB98000D83438 /* DBManager.h */,
 				58E9BD1E1E3FB98000D83438 /* DBManager.m */,
 				58E9BCF31E3FB8EF00D83438 /* Main.storyboard */,
@@ -305,6 +310,7 @@
 				58E9BCEF1E3FB8EF00D83438 /* AppDelegate.m in Sources */,
 				58E9BCEC1E3FB8EF00D83438 /* main.m in Sources */,
 				58E9BD1F1E3FB98000D83438 /* DBManager.m in Sources */,
+				587092AA1EE2BBD6005ECEC8 /* Reachability.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

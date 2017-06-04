@@ -19,23 +19,55 @@
 #include <time.h>
 #include <stdlib.h>
 
+// used for internet connection
+#import "Reachability.h"
+
 @interface ViewController ()
 
 @end
 
 @implementation ViewController
 
+-(void) viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    // Start coding from here
+    
+    [NSThread sleepForTimeInterval:1.2f];
+    
+    int adviceId = [self calculateAdviceID];
+    
+    NSString *advice = [[DBManager getSharedInstance] getAdviceByID:adviceId];
+    NSLog(@"### Current advice text is : %@",advice);
+    
+    [self showAdvice:advice];
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
+    
+    // [[NSUserDefaults standardUserDefaults]setBool:NO forKey:@"SecondTime"];
+    [[NSUserDefaults standardUserDefaults] setInteger:0 forKey:@"CurrentDay"];
     
     // Get screen dimension
     CGRect screenRect = [[UIScreen mainScreen] bounds];
     int width = screenRect.size.width;
     int height = screenRect.size.height;
     
-    // generate a random number between 1 and 14 which represents the quote id
-    int quoteId = arc4random_uniform(14) + 1;
+    // Get if this is the first time of running the app
+    BOOL boSecondTime = [[NSUserDefaults standardUserDefaults] boolForKey:@"SecondTime"];
+    if(boSecondTime == NO)
+    {
+        // create push notification when running app for first time
+        [self createPushNotification:9 m:0 boAlert:NO];
+        [self initializeAdvicesArray];
+        [self initializeQuotesArray];
+        
+        [[NSUserDefaults standardUserDefaults]setBool:YES forKey:@"SecondTime"];
+    }
+    
+    int quoteId = [self calculateQuoteID];
     
     NSString *imageName = [[DBManager getSharedInstance] getCategoryByID:quoteId];
     
@@ -92,15 +124,6 @@
     // Vertical center alignment
     [self adjustContentSize:_textQuote];
     
-    // Get if this is the first time of running the app
-    BOOL boSecondTime = [[NSUserDefaults standardUserDefaults] boolForKey:@"SecondTime"];
-    if(boSecondTime == NO)
-    {
-        // create push notification when running app for first time
-        [self createPushNotification:9 m:0 boAlert:NO];
-        [[NSUserDefaults standardUserDefaults]setBool:YES forKey:@"SecondTime"];
-    }
-    
     // create positions for copyright text
     int textPosX = width - 120;
     int textPosY;
@@ -112,7 +135,7 @@
     _textAuthor = [[UITextView alloc]initWithFrame:CGRectMake(textPosX, textPosY,textWidth,textHeight)];
     
     // create the author text
-    NSString *textCopyright = [NSString stringWithFormat:@"Be A Success\n%cGabriel Tarpian",169];
+    NSString *textCopyright = [NSString stringWithFormat:@"RoadToSuccess\n%cGabriel Tarpian",169];
     _textAuthor.text = textCopyright;
     UIFont *textAuthorFont = [UIFont fontWithName:@"Noteworthy-Bold" size:10];
     _textAuthor.font = textAuthorFont;
@@ -130,21 +153,24 @@
     // create the banner view
     _bannerView = [[GADBannerView alloc]initWithFrame:CGRectMake(bannerPosX, bannerPosY,bannerWidth,bannerHeight)];
     
+    /*
     self.bannerView.adUnitID = @"ca-app-pub-7014753020131070/3584035347";
     self.bannerView.rootViewController = self;
     GADRequest *request = [GADRequest request];
     
     // this is used only for testing the device
-    request.testDevices = @[ @"4892eadeb8eaff1d5ecc53641d4e6cfe" ];
+    request.testDevices = @[
+                            @"" // this device
+                            ];
     
     [self.bannerView loadRequest:request];
+     */
     
     // add components to main view
     [self.view addSubview:_textQuote];
     [self.view addSubview:_textAuthor];
     [self.view addSubview:_bannerView];
     
-    // display the initial animation
     [self displayInitialAnimation];
 }
 
@@ -334,9 +360,19 @@
     [btnTwitter setShowsTouchWhenHighlighted:TRUE];
     _barBtnTwitter = [[UIBarButtonItem alloc] initWithCustomView:btnTwitter];
     
+    // ************ Info button
+    UIImage *imgInfo = [UIImage imageNamed:@"Info"];
+    
+    UIButton *btnInfo = [UIButton buttonWithType:UIButtonTypeCustom];
+    [btnInfo addTarget:self action:@selector(infoButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    btnInfo.bounds = CGRectMake( 300, 5, 27, 27 );
+    [btnInfo setImage:imgInfo forState:UIControlStateNormal];
+    [btnInfo setShowsTouchWhenHighlighted:TRUE];
+    _barBtnInfo = [[UIBarButtonItem alloc] initWithCustomView:btnInfo];
+    
     // make visible items on the toolbar
     UIBarButtonItem *flexibleSpace2 = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
-    NSArray *items2 = [NSArray arrayWithObjects: _barBtnArrowLeft, flexibleSpace2, _barBtnSettings, flexibleSpace2, _barBtnSave,flexibleSpace2,  _barBtnFacebook, flexibleSpace2,  _barBtnTwitter, nil];
+    NSArray *items2 = [NSArray arrayWithObjects: _barBtnArrowLeft, flexibleSpace2, _barBtnSettings, flexibleSpace2, _barBtnSave,flexibleSpace2,  _barBtnFacebook, flexibleSpace2,  _barBtnTwitter, flexibleSpace2, _barBtnInfo, nil];
     [_mainToolbar setItems:items2 animated:YES];
     
     // background color for rightArrowToolbar
@@ -686,7 +722,7 @@
     {
         SLComposeViewController *facebookShare = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeFacebook];
         
-        NSString *shareText = @"Quote of the day by 'BeASuccess' app! #BeASuccess";
+        NSString *shareText = @"#RoadToSuccess #QuoteOfTheDay";
         [facebookShare setInitialText:shareText];
         [facebookShare addImage:image];
         
@@ -695,10 +731,10 @@
              
              switch (result) {
                  case SLComposeViewControllerResultCancelled:
-                     NSLog(@"Post Canceled");
+                     NSLog(@"######### Post Canceled");
                      break;
                  case SLComposeViewControllerResultDone:
-                     NSLog(@"Post Sucessful");
+                     NSLog(@"######### Post Sucessful");
                      break;
                  default:
                      break;
@@ -761,7 +797,7 @@
     {
         SLComposeViewController *tweet = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeTwitter];
         
-        NSString *shareText = @"Quote of the day by 'BeASuccess' app! #BeASuccess";
+        NSString *shareText = @"#QuoteOfTheDay #RoadToSuccess";
         [tweet setInitialText:shareText];
         [tweet addImage:image];
         
@@ -770,11 +806,60 @@
              
              switch (result) {
                  case SLComposeViewControllerResultCancelled:
-                     NSLog(@"Post Canceled");
+                     NSLog(@"######### Post Canceled");
                      break;
-                 case SLComposeViewControllerResultDone:
-                     NSLog(@"Post Sucessful");
+                     
+                case SLComposeViewControllerResultDone:
+                 {
+                     NSLog(@"######### Post Sucessful");
+                    
+                     [self dismissViewControllerAnimated:YES completion:nil];
+                     
+                     NSString * msg = [[NSString alloc]init];
+                     
+                     if ([[Reachability reachabilityForInternetConnection]currentReachabilityStatus]==NotReachable)
+                     {
+                         //connection unavailable
+                         msg = @"No internet connection! Do not worry, the quote will be tweeted when your device has internet connection";
+                     }
+                     else
+                     {
+                         //connection available
+                         msg = @"Quote tweeted successfully!";
+                     }
+                     
+                     // send a confirmation alert
+                     UIAlertController * alert = [UIAlertController
+                                                  alertControllerWithTitle:@"Confirmation"
+                                                  message:msg
+                                                  preferredStyle:UIAlertControllerStyleAlert];
+                     // create color for toolbar
+                     UIColor *backgroundColorAlert = [UIColor colorWithRed:130.0f/255.0f
+                                                                     green:130.0f/255.0f
+                                                                      blue:130.0f/255.0f
+                                                                     alpha:1.0f];
+                     UIView *firstSubview = alert.view.subviews.firstObject;
+                     UIView *alertContentView = firstSubview.subviews.firstObject;
+                     for (UIView *subSubView in alertContentView.subviews) { //This is main catch
+                         subSubView.backgroundColor = backgroundColorAlert;//Here you change background
+                     }
+                     
+                     UIAlertAction* okButton = [UIAlertAction
+                                                actionWithTitle:@"Great"
+                                                style:UIAlertActionStyleDefault
+                                                handler:^(UIAlertAction * action) {
+                                                    //Handle no, thanks button
+                                                }];
+                     
+                     [alert addAction:okButton];
+                     [self presentViewController:alert animated:YES completion:nil];
+                     [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
+                                                              green:165.0f/255.0f
+                                                               blue:0.0f/255.0f
+                                                              alpha:1.0f]];
+                     
                      break;
+                 }
                  default:
                      break;
              }
@@ -784,7 +869,6 @@
         
         [self presentViewController:tweet animated:YES completion:nil];
     }
-    
     else
     {
         NSLog(@"Twitter app not installed");
@@ -808,9 +892,240 @@
                                                  green:165.0f/255.0f
                                                   blue:0.0f/255.0f
                                                  alpha:1.0f]];
+        return;
     }
 }
 // *********************************************************************************
+
+// ******************************************************** INFO BUTTON PRESSED
+
+-(IBAction)infoButtonPressed:(id)sender
+{
+    
+    NSString *appVersion = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+    NSLog(@"##### App version: %@ \n",appVersion);
+    
+    NSString *msg = [[NSString alloc] initWithFormat:@"Stay inspired and motivated towards success! But what does success means? Success is not what society think it is. Success is yours! It’s crucial to figure out what exactly success means to you. I mean literally sit your butt in a chair and think critically about it. Think about all areas of life (health, relationships, social, career, financial, spiritual). Then work on your dreams! I know you have a lot! I have too, let’s reach them together!\n\n Thank you for using this application and enjoy the journey! It is the destination! \n \n Application: Road To Success \n Version: %@ \n Author: Gabriel Tarpian", appVersion];
+    
+    // send a confirmation alert
+    UIAlertController * alert = [UIAlertController
+                                 alertControllerWithTitle:@"About this App"
+                                 message:msg
+                                 preferredStyle:UIAlertControllerStyleAlert];
+    // create color for toolbar
+    UIColor *backgroundColorAlert = [UIColor colorWithRed:130.0f/255.0f
+                                                    green:130.0f/255.0f
+                                                     blue:130.0f/255.0f
+                                                    alpha:1.0f];
+    UIView *firstSubview = alert.view.subviews.firstObject;
+    UIView *alertContentView = firstSubview.subviews.firstObject;
+    for (UIView *subSubView in alertContentView.subviews) { //This is main catch
+        subSubView.backgroundColor = backgroundColorAlert;//Here you change background
+    }
+    
+    UIAlertAction* okButton = [UIAlertAction
+                               actionWithTitle:@"I am successful"
+                               style:UIAlertActionStyleDefault
+                               handler:^(UIAlertAction * action) {
+                                   //Handle no, thanks button
+                               }];
+    
+    [alert addAction:okButton];
+    [self presentViewController:alert animated:YES completion:nil];
+    [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
+                                             green:165.0f/255.0f
+                                              blue:0.0f/255.0f
+                                             alpha:1.0f]];
+}
+// *********************************************************************************
+
+
+// ******************************************************** SHOW ADVICE
+-(void) showAdvice:(NSString*)advice
+{
+    // send a confirmation alert
+    UIAlertController * alert = [UIAlertController
+                                 alertControllerWithTitle:@"Hey, successful! It's me..."
+                                 message:advice
+                                 preferredStyle:UIAlertControllerStyleAlert];
+    // create color for toolbar
+    UIColor *backgroundColorAlert = [UIColor colorWithRed:130.0f/255.0f
+                                                    green:130.0f/255.0f
+                                                     blue:130.0f/255.0f
+                                                    alpha:1.0f];
+    UIView *firstSubview = alert.view.subviews.firstObject;
+    UIView *alertContentView = firstSubview.subviews.firstObject;
+    for (UIView *subSubView in alertContentView.subviews) { //This is main catch
+        subSubView.backgroundColor = backgroundColorAlert;//Here you change background
+    }
+    
+    UIAlertAction* okButton = [UIAlertAction
+                               actionWithTitle:@"I am successful"
+                               style:UIAlertActionStyleDefault
+                               handler:^(UIAlertAction * action) {
+                                   //Handle no, thanks button
+                               }];
+    
+    [alert addAction:okButton];
+    
+    [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
+                                             green:165.0f/255.0f
+                                              blue:0.0f/255.0f
+                                             alpha:1.0f]];
+    
+    [self presentViewController:alert animated:YES completion:nil];
+
+}
+// *********************************************************************************
+
+// ******************************************************** INITIALIZE QUOTES ARRAY
+-(void) initializeQuotesArray
+{
+    int number_of_quotes = [[DBManager getSharedInstance] getNumberOfQuotes];
+    NSLog(@"### Number of quotes = %d", number_of_quotes);
+    
+    NSMutableArray *quotes = [NSMutableArray array];
+    for (NSInteger i = 1; i <= number_of_quotes; i++)
+        [quotes addObject:[NSNumber numberWithInteger:i]];
+    
+    // store them in user defaults
+    [[NSUserDefaults standardUserDefaults] setObject:quotes forKey:@"AvailableQuotes"];
+    
+    /*
+    NSLog(@"#### Quotes");
+    for (NSNumber *item in quotes)
+        NSLog(@"%@",item);
+     */
+}
+// *********************************************************************************
+
+
+// ******************************************************** INITIALIZE ADVICES ARRAY
+-(void) initializeAdvicesArray
+{
+    int number_of_advices = [[DBManager getSharedInstance] getNumberOfAdvices];
+    NSLog(@"### Number of advices = %d", number_of_advices);
+    
+    NSMutableArray *advices = [NSMutableArray array];
+    for (NSInteger i = 1; i <= number_of_advices; i++)
+        [advices addObject:[NSNumber numberWithInteger:i]];
+    
+    [[NSUserDefaults standardUserDefaults] setObject:advices forKey:@"AvailableAdvices"];
+     
+     /*
+     NSLog(@"#### Advices");
+     for (NSNumber *item in advices)
+     NSLog(@"%@",item);
+     */
+}
+// *********************************************************************************
+
+
+// ******************************************************** CALCULATE ADVICE ID
+-(int) calculateAdviceID
+{
+    NSArray *advicesImutable = [[NSUserDefaults standardUserDefaults] objectForKey:@"AvailableAdvices"];
+    NSMutableArray *advices = [advicesImutable mutableCopy];
+    
+    // get number of advices and a random index
+    int number_of_advices = (int) [advices count];
+    int advice_index = arc4random_uniform(number_of_advices);
+    
+    // get the actual advice id
+    int adviceID = [[advices objectAtIndex:advice_index] intValue];
+    
+    NSLog(@"### Number of advices = %d",number_of_advices);
+    NSLog(@"### Advice index = %d",advice_index);
+    NSLog(@"### Advice ID = %d",adviceID);
+    
+    // remove the advice id
+    [advices removeObjectAtIndex:advice_index];
+    
+    int numer_of_advices_after_removal = (int) [advices count];
+    
+    NSLog(@"### Advices array after removal is: ");
+    printf("[");
+    for (NSNumber *item in advices)
+        printf("%d ",[item intValue]);
+    printf("]\n");
+    
+    NSLog(@"### Number of advices after removal = %d",numer_of_advices_after_removal);
+    
+    if (numer_of_advices_after_removal == 0)
+        [self initializeAdvicesArray];
+    else [[NSUserDefaults standardUserDefaults] setObject:advices forKey:@"AvailableAdvices"];
+    
+    return adviceID;
+}
+// *********************************************************************************
+
+
+// ******************************************************** CALCULATE QUOTE ID
+-(int) calculateQuoteID
+{
+    NSDateComponents *components = [[NSCalendar currentCalendar] components:NSCalendarUnitDay | NSCalendarUnitMonth | NSCalendarUnitYear | NSCalendarUnitHour | NSCalendarUnitMinute fromDate:[NSDate date]];
+    int current_calendar_day = (int) [components day];
+    int current_hour = (int) [components hour];
+    int current_min = (int) [components minute];
+    NSLog(@"### Current calendar day = %d",current_calendar_day);
+    NSLog(@"### Current calendar hour = %d", current_hour);
+    NSLog(@"### Current calendar min = %d", current_min);
+    
+    
+    int current_day = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"CurrentDay"];
+    int current_quote_id = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"CurrentQuoteID"];
+    int notification_hour = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"Hour"];
+    int notification_min  = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"Minute"];
+    NSLog(@"### Current day = %d", current_day);
+    NSLog(@"### Current quote id = %d", current_quote_id);
+    NSLog(@"### Current notification hour = %d", notification_hour);
+    NSLog(@"### Current notification min = %d", notification_min);
+    
+    int return_value = current_quote_id;
+    
+    if(current_day != current_calendar_day && current_hour >= notification_hour && current_min >= notification_min)
+    {
+        NSArray *quotesImutable = [[NSUserDefaults standardUserDefaults] objectForKey:@"AvailableQuotes"];
+        NSMutableArray *quotes = [quotesImutable mutableCopy];
+        
+        // get number of advices and a random index
+        int number_of_quotes = (int) [quotes count];
+        int quote_index = arc4random_uniform(number_of_quotes);
+        
+        // get the actual advice id
+        int quoteID = [[quotes objectAtIndex:quote_index] intValue];
+        
+        NSLog(@"### Number of quotes = %d",number_of_quotes);
+        NSLog(@"### Quote index = %d",quote_index);
+        NSLog(@"### Next quote ID = %d",quoteID);
+        
+        // remove the advice id
+        [quotes removeObjectAtIndex:quote_index];
+        
+        int number_of_quotes_after_removal = (int)[quotes count];
+        
+        NSLog(@"### Quotes array after removal is: ");
+        printf("[");
+        for (NSNumber *item in quotes)
+            printf("%d ",[item intValue]);
+        printf("]\n");
+        
+        NSLog(@"### Number of quotes after removal = %d", number_of_quotes_after_removal);
+        
+        if (number_of_quotes_after_removal == 0)
+            [self initializeQuotesArray];
+        else [[NSUserDefaults standardUserDefaults] setObject:quotes forKey:@"AvailableQuotes"];
+        
+        //[[NSUserDefaults standardUserDefaults] setInteger:current_calendar_day forKey:@"CurrentDay"];
+        [[NSUserDefaults standardUserDefaults] setInteger:quoteID forKey:@"CurrentQuoteID"];
+        
+        return_value = quoteID;
+    }
+    
+    return return_value;
+}
+// *********************************************************************************
+
 
 // ******************************************************** CANCEL NOTIFICATION HOUR
 -(void) cancelNotificationHour

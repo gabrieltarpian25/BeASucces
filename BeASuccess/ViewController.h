@@ -30,6 +30,7 @@
 @property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnSave;
 @property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnFacebook;
 @property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnTwitter;
+@property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnInfo;
 
 // bar buttons for right arrow toolbar
 @property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnArrowRight;
