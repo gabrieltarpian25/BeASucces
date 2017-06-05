@@ -15,6 +15,8 @@
 // imported for sharing on facebook
 #import <Social/Social.h>
 
+#import <Photos/Photos.h>
+
 // used for random number generator
 #include <time.h>
 #include <stdlib.h>
@@ -25,6 +27,9 @@
 @interface ViewController ()
 
 @end
+
+// format NSLog to not display timestamp
+#define NSLog(FORMAT, ...) printf("%s\n", [[NSString stringWithFormat:FORMAT, ##__VA_ARGS__] UTF8String]);
 
 @implementation ViewController
 
@@ -38,16 +43,23 @@
     int adviceId = [self calculateAdviceID];
     
     NSString *advice = [[DBManager getSharedInstance] getAdviceByID:adviceId];
-    NSLog(@"### Current advice text is : %@",advice);
+    NSLog(@"# Current advice text is : %@",advice);
     
-    [self showAdvice:advice];
+    bool initial_advice = [[NSUserDefaults standardUserDefaults] boolForKey:@"InitialAdviceDisplayed"];
+    
+    if(initial_advice == FALSE)
+    {
+        NSLog(@"# Displaying initial advice");
+        [self sendAlert:@"Hey, successful!" :@"I am your success assistant. Before you start using this app, you should define what success means to you. Success is not what society think it is. Success is yours! Sit down and think about all areas of life (health, relationships, social, career, financial, spiritual). If you haven't found your passion yet, don't worry! You're not alone! In this app you will find interesting definitions of success, hope it will help you find yours! By the way, everytime you open the app, I will give you an advice about life. I gathered these advices from the best life coaches of the world and I really want to share them with you. Take advantage of them!\n\n Thank you for downloading the app, let's reach our goals together!"];
+        [[NSUserDefaults standardUserDefaults] setBool:TRUE forKey:@"InitialAdviceDisplayed"];
+    }
+    else [self sendAlert:@"Hey, successful, it's me! My advice for you is ..." :advice];
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     
-    // [[NSUserDefaults standardUserDefaults]setBool:NO forKey:@"SecondTime"];
     [[NSUserDefaults standardUserDefaults] setInteger:0 forKey:@"CurrentDay"];
     
     // Get screen dimension
@@ -63,11 +75,13 @@
         [self createPushNotification:9 m:0 boAlert:NO];
         [self initializeAdvicesArray];
         [self initializeQuotesArray];
-        
-        [[NSUserDefaults standardUserDefaults]setBool:YES forKey:@"SecondTime"];
     }
     
     int quoteId = [self calculateQuoteID];
+    //int quoteId = 49;
+    
+    if(boSecondTime == FALSE)
+        [[NSUserDefaults standardUserDefaults]setBool:YES forKey:@"SecondTime"];
     
     NSString *imageName = [[DBManager getSharedInstance] getCategoryByID:quoteId];
     
@@ -95,6 +109,13 @@
     // get quote, author and create the final string
     NSString *quote = [[DBManager getSharedInstance] getQuoteByID:quoteId];
     NSString *author = [[DBManager getSharedInstance] getAuthorByID:quoteId];
+    
+    if(quote == nil || author == nil)
+    {
+        NSLog(@"# ERROR (ViewController): Unable to retreive quote and author from database");
+        exit(-1);
+    }
+    
     NSString *finalString = [NSString stringWithFormat:@"%@\n\n%@", quote, author];
     
     // create the font
@@ -154,16 +175,16 @@
     _bannerView = [[GADBannerView alloc]initWithFrame:CGRectMake(bannerPosX, bannerPosY,bannerWidth,bannerHeight)];
     
     /*
-    self.bannerView.adUnitID = @"ca-app-pub-7014753020131070/3584035347";
-    self.bannerView.rootViewController = self;
-    GADRequest *request = [GADRequest request];
-    
-    // this is used only for testing the device
-    request.testDevices = @[
-                            @"" // this device
-                            ];
-    
-    [self.bannerView loadRequest:request];
+     self.bannerView.adUnitID = @"ca-app-pub-7014753020131070/3584035347";
+     self.bannerView.rootViewController = self;
+     GADRequest *request = [GADRequest request];
+     
+     // this is used only for testing the device
+     request.testDevices = @[
+     @"" // this device
+     ];
+     
+     [self.bannerView loadRequest:request];
      */
     
     // add components to main view
@@ -399,7 +420,7 @@
 // ******************************************************** CHANGE NOTIFICATION TIME BUTTON PRESSED
 -(IBAction)changeNotificationTime:(id)sender
 {
-    NSLog(@"Settings button is pressed \n");
+    NSLog(@"# Settings button is pressed...");
     
     // set up the date picker
     _datePickerNotification = [[UIDatePicker alloc] init];
@@ -457,10 +478,9 @@
 // ******************************************************** NOTIFICATION HOUR CHANGED
 -(void) notificationHourChanged
 {
-    NSLog(@"Notification hour changed");
+    NSLog(@"# Notification time is changing...");
     int currentHour = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"Hour"];
     int currentMinute  = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"Minute"];
-    
     
     // get the date stored in _dateNotification
     NSDate *notificationDate = [_datePickerNotification date];
@@ -471,7 +491,7 @@
     
     if(currentHour != nextHour || currentMinute != nextMinute)
     {
-        NSLog(@"Notification time changed from %02d:%02d to %02d:%02d \n", currentHour, currentMinute,nextHour,nextMinute);
+        NSLog(@"# Notification time changed from %02d:%02d to %02d:%02d", currentHour, currentMinute,nextHour,nextMinute);
         [self createPushNotification:nextHour m:nextMinute boAlert:YES];
     }
     
@@ -501,8 +521,8 @@
     UNCalendarNotificationTrigger *trigger = [UNCalendarNotificationTrigger triggerWithDateMatchingComponents:dateComponents repeats:YES];
     
     UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
-    content.title = [NSString localizedUserNotificationStringForKey:@"A new quote is available" arguments:nil];
-    content.body = [NSString localizedUserNotificationStringForKey:@"Open the app to see it"
+    content.title = [NSString localizedUserNotificationStringForKey:@"Hey, successful!" arguments:nil];
+    content.body = [NSString localizedUserNotificationStringForKey:@"I just have a new quote for you!"
                                                          arguments:nil];
     content.sound = [UNNotificationSound defaultSound];
     NSInteger myValue = 1;
@@ -518,7 +538,7 @@
         if (!error)
         {
             
-            NSLog(@"NotificationRequest succeeded!\n");
+            NSLog(@"# NotificationRequest succeeded");
             
             // store the hour and the minute
             [[NSUserDefaults standardUserDefaults]setInteger:hour forKey:@"Hour"];
@@ -527,87 +547,16 @@
             // send a confirmation alert only the current notification is not the default notification
             if( alert == YES )
             {
-                NSString *message = [[NSString alloc]init];
+                NSString *message = [[NSString alloc] initWithFormat:@"Notification time changed to %02d:%02d",hour,minute];
                 
-                if(hour < 10 && minute < 10)
-                    message = [NSString stringWithFormat:@"Notification time changed successfully to %02d:%02d",hour,minute];
-                
-                if(hour > 9 && minute > 9)
-                    message = [NSString stringWithFormat:@"Notification time changed successfully to %d:%d", hour, minute];
-                
-                if(hour < 10 && minute > 9)
-                    message = [NSString stringWithFormat:@"Notification time changed successfully to %02d:%d",hour,minute];
-                
-                if(hour > 9 && minute < 10)
-                    message = [NSString stringWithFormat:@"Notification time changed successfully to %d:%02d",hour,minute];
-                
-                // send a confirmation alert
-                UIAlertController * alert = [UIAlertController
-                                             alertControllerWithTitle:@"Confirmation"
-                                             message:message
-                                             preferredStyle:UIAlertControllerStyleAlert];
-                // create color for toolbar
-                UIColor *backgroundColorAlert = [UIColor colorWithRed:130.0f/255.0f
-                                                                green:130.0f/255.0f
-                                                                 blue:130.0f/255.0f
-                                                                alpha:1.0f];
-                UIView *firstSubview = alert.view.subviews.firstObject;
-                UIView *alertContentView = firstSubview.subviews.firstObject;
-                for (UIView *subSubView in alertContentView.subviews) { //This is main catch
-                    subSubView.backgroundColor = backgroundColorAlert;//Here you change background
-                }
-                
-                UIAlertAction* okButton = [UIAlertAction
-                                           actionWithTitle:@"Great"
-                                           style:UIAlertActionStyleDefault
-                                           handler:^(UIAlertAction * action) {
-                                               //Handle no, thanks button
-                                           }];
-                
-                [alert addAction:okButton];
-                [self presentViewController:alert animated:YES completion:nil];
-                [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
-                                                         green:165.0f/255.0f
-                                                          blue:0.0f/255.0f
-                                                         alpha:1.0f]];
+                [self sendAlert:@"Confirmation" :message];
             }
-            
         }
         else
         {
-            NSLog(@"NotificationRequest failed!\n");
+            NSLog(@"# ERROR: NotificationRequest failed");
             
-            // send a confirmation alert
-            UIAlertController * alert = [UIAlertController
-                                         alertControllerWithTitle:@"Confirmation"
-                                         message:@"Failed to change the notification time. Please try again"
-                                         preferredStyle:UIAlertControllerStyleAlert];
-            // create color for toolbar
-            UIColor *backgroundColorAlert = [UIColor colorWithRed:130.0f/255.0f
-                                                            green:130.0f/255.0f
-                                                             blue:130.0f/255.0f
-                                                            alpha:1.0f];
-            UIView *firstSubview = alert.view.subviews.firstObject;
-            UIView *alertContentView = firstSubview.subviews.firstObject;
-            for (UIView *subSubView in alertContentView.subviews) { //This is main catch
-                subSubView.backgroundColor = backgroundColorAlert;//Here you change background
-            }
-            
-            UIAlertAction* okButton = [UIAlertAction
-                                       actionWithTitle:@"OK"
-                                       style:UIAlertActionStyleDefault
-                                       handler:^(UIAlertAction * action) {
-                                           //Handle no, thanks button
-                                       }];
-            
-            [alert addAction:okButton];
-            [self presentViewController:alert animated:YES completion:nil];
-            [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
-                                                     green:165.0f/255.0f
-                                                      blue:0.0f/255.0f
-                                                     alpha:1.0f]];
-            
-            
+            [self sendAlert:@"Confirmation" :@"Failed to change the notification time. Please try again"];
         }
     }];
     
@@ -617,8 +566,56 @@
 // ******************************************************** SAVE BUTTON PRESSED
 -(IBAction)saveButtonPressed:(id)sender
 {
-    NSLog(@"Save button is pressed \n");
     
+    NSLog(@"# Save button is pressed");
+    NSLog(@"# Checking for app permission to access photo library ...");
+    
+    // check if user received rights for using the photos library
+    PHAuthorizationStatus status = [PHPhotoLibrary authorizationStatus];
+    
+    
+    if (status == PHAuthorizationStatusAuthorized)
+        [self savePhoto];
+    else if (status == PHAuthorizationStatusDenied)
+    {
+        // Access has been denied.
+        [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+            
+            if (status == PHAuthorizationStatusAuthorized)
+                [self savePhoto];
+            else
+            {
+                NSLog(@"# ERROR: Authorization status - Denied");
+                [self sendAlert:@"Error" :@"App did not receive access to Photo Library. Please go to Settings -> Privacy -> Photos and allow access to our app. Thank you"];
+            }
+        }];
+    }
+    else if (status == PHAuthorizationStatusNotDetermined)
+    {
+        // Access has not been determined.
+        [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+            
+            if (status == PHAuthorizationStatusAuthorized)
+                [self savePhoto];
+            else [self sendAlert:@"Error" :@"App did not receive access to Photo Library"];
+        }];
+    }
+    else if (status == PHAuthorizationStatusRestricted) {
+        
+        // Restricted access - normally won't happen.
+        [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+            
+            if (status == PHAuthorizationStatusAuthorized)
+                [self savePhoto];
+            else [self sendAlert:@"Error" :@"App did not receive access to Photo Library. Please go to Settings -> Privacy -> Photos and allow access to our app. Thank you"];
+        }];
+        
+    }
+}
+// *********************************************************************************
+
+-(void) savePhoto
+{
     if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
         UIGraphicsBeginImageContextWithOptions(self.view.bounds.size, NO, [UIScreen mainScreen].scale);
     } else {
@@ -638,69 +635,24 @@
     {
         //[imageData writeToFile:@"screenshot.png" atomically:YES];
         UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil);
-        NSLog(@"Imaged saved succesfully \n");
+        NSLog(@"# Imaged saved succesfully");
         
-        // send a confirmation alert
-        UIAlertController * alert = [UIAlertController
-                                     alertControllerWithTitle:@"Confirmation"
-                                     message:@"Photo saved successfully. Please check your gallery"
-                                     preferredStyle:UIAlertControllerStyleAlert];
-        // create color for toolbar
-        UIColor *backgroundColorAlert = [UIColor colorWithRed:130.0f/255.0f
-                                                        green:130.0f/255.0f
-                                                         blue:130.0f/255.0f
-                                                        alpha:1.0f];
-        UIView *firstSubview = alert.view.subviews.firstObject;
-        UIView *alertContentView = firstSubview.subviews.firstObject;
-        for (UIView *subSubView in alertContentView.subviews) { //This is main catch
-            subSubView.backgroundColor = backgroundColorAlert;//Here you change background
-        }
+        [self sendAlert:@"Confirmation" :@"Photo saved successfully. Please check your gallery"];
         
-        UIAlertAction* okButton = [UIAlertAction
-                                   actionWithTitle:@"Great"
-                                   style:UIAlertActionStyleDefault
-                                   handler:^(UIAlertAction * action) {
-                                       //Handle no, thanks button
-                                   }];
-        
-        [alert addAction:okButton];
-        [self presentViewController:alert animated:YES completion:nil];
-        [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
-                                                 green:165.0f/255.0f
-                                                  blue:0.0f/255.0f
-                                                 alpha:1.0f]];
     }
     else
     {
-        NSLog(@"error while taking screenshot");
+        NSLog(@"# ERROR: Failed to capture the screen");
         
-        // send a confirmation alert
-        UIAlertController * alert = [UIAlertController
-                                     alertControllerWithTitle:@"Error"
-                                     message:@"Error while saving the photo. Please try again"
-                                     preferredStyle:UIAlertControllerStyleAlert];
+        [self sendAlert:@"Error" :@"Error while saving the photo. Please try again"];
         
-        UIAlertAction* okButton = [UIAlertAction
-                                   actionWithTitle:@"OK"
-                                   style:UIAlertActionStyleDefault
-                                   handler:^(UIAlertAction * action) {
-                                       //Handle no, thanks button
-                                   }];
-        
-        [alert addAction:okButton];
-        [self presentViewController:alert animated:YES completion:nil];
-        [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
-                                                 green:165.0f/255.0f
-                                                  blue:0.0f/255.0f
-                                                 alpha:1.0f]];
     }
 }
-// *********************************************************************************
 
 // ******************************************************** FACEBOOK BUTTON PRESSED
 -(IBAction)facebookButtonPressed:(id)sender
 {
-    NSLog(@"Facebook button is pressed\n");
+    NSLog(@"# Facebook button is pressed...");
     
     // get current quote screenshot
     if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
@@ -731,10 +683,10 @@
              
              switch (result) {
                  case SLComposeViewControllerResultCancelled:
-                     NSLog(@"######### Post Canceled");
+                     NSLog(@"# Facebook Post Canceled");
                      break;
                  case SLComposeViewControllerResultDone:
-                     NSLog(@"######### Post Sucessful");
+                     NSLog(@"# Facebook Post Sucessful");
                      break;
                  default:
                      break;
@@ -747,27 +699,9 @@
     }
     else
     {
-        NSLog(@"Facebook app not installed");
+        NSLog(@"# ERROR: Facebook app not installed");
         
-        // send a confirmation alert
-        UIAlertController * alert = [UIAlertController
-                                     alertControllerWithTitle:@"Error"
-                                     message:@"Error while connecting to your Facebook account. Please try again"
-                                     preferredStyle:UIAlertControllerStyleAlert];
-        
-        UIAlertAction* okButton = [UIAlertAction
-                                   actionWithTitle:@"OK"
-                                   style:UIAlertActionStyleDefault
-                                   handler:^(UIAlertAction * action) {
-                                       //Handle no, thanks button
-                                   }];
-        
-        [alert addAction:okButton];
-        [self presentViewController:alert animated:YES completion:nil];
-        [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
-                                                 green:165.0f/255.0f
-                                                  blue:0.0f/255.0f
-                                                 alpha:1.0f]];
+        [self sendAlert:@"Error" :@"Error while connecting to your Facebook account. Facebook app might not be installed or your account is not linked to the app. Please solve this and try again"];
     }
 }
 // *********************************************************************************
@@ -775,7 +709,7 @@
 // ******************************************************** TWITTER BUTTON PRESSED
 -(IBAction)twitterButtonPressed:(id)sender
 {
-    NSLog(@"Twitter button is pressed\n");
+    NSLog(@"# Twitter button is pressed...");
     
     // get current quote screenshot
     if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
@@ -806,13 +740,13 @@
              
              switch (result) {
                  case SLComposeViewControllerResultCancelled:
-                     NSLog(@"######### Post Canceled");
+                     NSLog(@"# Twitter Post Canceled");
                      break;
                      
-                case SLComposeViewControllerResultDone:
+                 case SLComposeViewControllerResultDone:
                  {
-                     NSLog(@"######### Post Sucessful");
-                    
+                     NSLog(@"# Twitter Post Sucessful");
+                     
                      [self dismissViewControllerAnimated:YES completion:nil];
                      
                      NSString * msg = [[NSString alloc]init];
@@ -828,35 +762,7 @@
                          msg = @"Quote tweeted successfully!";
                      }
                      
-                     // send a confirmation alert
-                     UIAlertController * alert = [UIAlertController
-                                                  alertControllerWithTitle:@"Confirmation"
-                                                  message:msg
-                                                  preferredStyle:UIAlertControllerStyleAlert];
-                     // create color for toolbar
-                     UIColor *backgroundColorAlert = [UIColor colorWithRed:130.0f/255.0f
-                                                                     green:130.0f/255.0f
-                                                                      blue:130.0f/255.0f
-                                                                     alpha:1.0f];
-                     UIView *firstSubview = alert.view.subviews.firstObject;
-                     UIView *alertContentView = firstSubview.subviews.firstObject;
-                     for (UIView *subSubView in alertContentView.subviews) { //This is main catch
-                         subSubView.backgroundColor = backgroundColorAlert;//Here you change background
-                     }
-                     
-                     UIAlertAction* okButton = [UIAlertAction
-                                                actionWithTitle:@"Great"
-                                                style:UIAlertActionStyleDefault
-                                                handler:^(UIAlertAction * action) {
-                                                    //Handle no, thanks button
-                                                }];
-                     
-                     [alert addAction:okButton];
-                     [self presentViewController:alert animated:YES completion:nil];
-                     [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
-                                                              green:165.0f/255.0f
-                                                               blue:0.0f/255.0f
-                                                              alpha:1.0f]];
+                     [self sendAlert:@"Confirmation" :msg];
                      
                      break;
                  }
@@ -871,28 +777,9 @@
     }
     else
     {
-        NSLog(@"Twitter app not installed");
+        NSLog(@"# ERROR: Twitter app not installed");
         
-        // send a confirmation alert
-        UIAlertController * alert = [UIAlertController
-                                     alertControllerWithTitle:@"Error"
-                                     message:@"Error while connecting to your Twitter account. Please try again"
-                                     preferredStyle:UIAlertControllerStyleAlert];
-        
-        UIAlertAction* okButton = [UIAlertAction
-                                   actionWithTitle:@"OK"
-                                   style:UIAlertActionStyleDefault
-                                   handler:^(UIAlertAction * action) {
-                                       //Handle no, thanks button
-                                   }];
-        
-        [alert addAction:okButton];
-        [self presentViewController:alert animated:YES completion:nil];
-        [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
-                                                 green:165.0f/255.0f
-                                                  blue:0.0f/255.0f
-                                                 alpha:1.0f]];
-        return;
+        [self sendAlert:@"Error" :@"Error while connecting to your Twitter account. Twitter app may not be installed or your account is not linked to the app. Please solve this and try again"];
     }
 }
 // *********************************************************************************
@@ -903,39 +790,11 @@
 {
     
     NSString *appVersion = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
-    NSLog(@"##### App version: %@ \n",appVersion);
+    NSLog(@"# Current App version = %@",appVersion);
     
     NSString *msg = [[NSString alloc] initWithFormat:@"Stay inspired and motivated towards success! But what does success means? Success is not what society think it is. Success is yours! It’s crucial to figure out what exactly success means to you. I mean literally sit your butt in a chair and think critically about it. Think about all areas of life (health, relationships, social, career, financial, spiritual). Then work on your dreams! I know you have a lot! I have too, let’s reach them together!\n\n Thank you for using this application and enjoy the journey! It is the destination! \n \n Application: Road To Success \n Version: %@ \n Author: Gabriel Tarpian", appVersion];
     
-    // send a confirmation alert
-    UIAlertController * alert = [UIAlertController
-                                 alertControllerWithTitle:@"About this App"
-                                 message:msg
-                                 preferredStyle:UIAlertControllerStyleAlert];
-    // create color for toolbar
-    UIColor *backgroundColorAlert = [UIColor colorWithRed:130.0f/255.0f
-                                                    green:130.0f/255.0f
-                                                     blue:130.0f/255.0f
-                                                    alpha:1.0f];
-    UIView *firstSubview = alert.view.subviews.firstObject;
-    UIView *alertContentView = firstSubview.subviews.firstObject;
-    for (UIView *subSubView in alertContentView.subviews) { //This is main catch
-        subSubView.backgroundColor = backgroundColorAlert;//Here you change background
-    }
-    
-    UIAlertAction* okButton = [UIAlertAction
-                               actionWithTitle:@"I am successful"
-                               style:UIAlertActionStyleDefault
-                               handler:^(UIAlertAction * action) {
-                                   //Handle no, thanks button
-                               }];
-    
-    [alert addAction:okButton];
-    [self presentViewController:alert animated:YES completion:nil];
-    [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
-                                             green:165.0f/255.0f
-                                              blue:0.0f/255.0f
-                                             alpha:1.0f]];
+    [self sendAlert:@"About this App" :msg];
 }
 // *********************************************************************************
 
@@ -974,15 +833,16 @@
                                              alpha:1.0f]];
     
     [self presentViewController:alert animated:YES completion:nil];
-
+    
 }
 // *********************************************************************************
 
 // ******************************************************** INITIALIZE QUOTES ARRAY
 -(void) initializeQuotesArray
 {
+    NSLog(@"# Initializing quotes array...");
     int number_of_quotes = [[DBManager getSharedInstance] getNumberOfQuotes];
-    NSLog(@"### Number of quotes = %d", number_of_quotes);
+    NSLog(@"# Number of quotes stored in database = %d", number_of_quotes);
     
     NSMutableArray *quotes = [NSMutableArray array];
     for (NSInteger i = 1; i <= number_of_quotes; i++)
@@ -992,9 +852,9 @@
     [[NSUserDefaults standardUserDefaults] setObject:quotes forKey:@"AvailableQuotes"];
     
     /*
-    NSLog(@"#### Quotes");
-    for (NSNumber *item in quotes)
-        NSLog(@"%@",item);
+     NSLog(@"#### Quotes");
+     for (NSNumber *item in quotes)
+     NSLog(@"%@",item);
      */
 }
 // *********************************************************************************
@@ -1003,16 +863,17 @@
 // ******************************************************** INITIALIZE ADVICES ARRAY
 -(void) initializeAdvicesArray
 {
+    NSLog(@"# Initializing advices array");
     int number_of_advices = [[DBManager getSharedInstance] getNumberOfAdvices];
-    NSLog(@"### Number of advices = %d", number_of_advices);
+    NSLog(@"# Number of advices stored in database = %d", number_of_advices);
     
     NSMutableArray *advices = [NSMutableArray array];
     for (NSInteger i = 1; i <= number_of_advices; i++)
         [advices addObject:[NSNumber numberWithInteger:i]];
     
     [[NSUserDefaults standardUserDefaults] setObject:advices forKey:@"AvailableAdvices"];
-     
-     /*
+    
+    /*
      NSLog(@"#### Advices");
      for (NSNumber *item in advices)
      NSLog(@"%@",item);
@@ -1024,6 +885,7 @@
 // ******************************************************** CALCULATE ADVICE ID
 -(int) calculateAdviceID
 {
+    NSLog(@"# Calculating Advice ID...");
     NSArray *advicesImutable = [[NSUserDefaults standardUserDefaults] objectForKey:@"AvailableAdvices"];
     NSMutableArray *advices = [advicesImutable mutableCopy];
     
@@ -1034,24 +896,24 @@
     // get the actual advice id
     int adviceID = [[advices objectAtIndex:advice_index] intValue];
     
-    NSLog(@"### Number of advices = %d",number_of_advices);
-    NSLog(@"### Advice index = %d",advice_index);
-    NSLog(@"### Advice ID = %d",adviceID);
+    NSLog(@"# Number of advices = %d",number_of_advices);
+    NSLog(@"# Advice index = %d",advice_index);
+    NSLog(@"# Advice ID = %d",adviceID);
     
     // remove the advice id
     [advices removeObjectAtIndex:advice_index];
     
-    int numer_of_advices_after_removal = (int) [advices count];
+    int number_of_advices_after_removal = (int) [advices count];
     
-    NSLog(@"### Advices array after removal is: ");
+    NSLog(@"# Advices array after removal is: ");
     printf("[");
     for (NSNumber *item in advices)
         printf("%d ",[item intValue]);
     printf("]\n");
     
-    NSLog(@"### Number of advices after removal = %d",numer_of_advices_after_removal);
+    NSLog(@"# Number of advices after removal = %d",number_of_advices_after_removal);
     
-    if (numer_of_advices_after_removal == 0)
+    if (number_of_advices_after_removal == 0)
         [self initializeAdvicesArray];
     else [[NSUserDefaults standardUserDefaults] setObject:advices forKey:@"AvailableAdvices"];
     
@@ -1063,54 +925,75 @@
 // ******************************************************** CALCULATE QUOTE ID
 -(int) calculateQuoteID
 {
+    NSLog(@"# Calculating Quote ID...");
+    
     NSDateComponents *components = [[NSCalendar currentCalendar] components:NSCalendarUnitDay | NSCalendarUnitMonth | NSCalendarUnitYear | NSCalendarUnitHour | NSCalendarUnitMinute fromDate:[NSDate date]];
+    
+    // store the current calendar day, hour, min
     int current_calendar_day = (int) [components day];
     int current_hour = (int) [components hour];
     int current_min = (int) [components minute];
-    NSLog(@"### Current calendar day = %d",current_calendar_day);
-    NSLog(@"### Current calendar hour = %d", current_hour);
-    NSLog(@"### Current calendar min = %d", current_min);
+    NSLog(@"# Current calendar day = %d",current_calendar_day);
+    NSLog(@"# Current calendar hour = %d", current_hour);
+    NSLog(@"# Current calendar min = %d", current_min);
     
-    
+    // get the user defaults
     int current_day = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"CurrentDay"];
     int current_quote_id = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"CurrentQuoteID"];
     int notification_hour = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"Hour"];
     int notification_min  = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"Minute"];
-    NSLog(@"### Current day = %d", current_day);
-    NSLog(@"### Current quote id = %d", current_quote_id);
-    NSLog(@"### Current notification hour = %d", notification_hour);
-    NSLog(@"### Current notification min = %d", notification_min);
+    bool secondTime = [[NSUserDefaults standardUserDefaults] boolForKey:@"SecondTime"];
+    NSLog(@"# Current day = %d", current_day);
+    NSLog(@"# Current quote id = %d", current_quote_id);
+    NSLog(@"# Current notification hour = %d", notification_hour);
+    NSLog(@"# Current notification min = %d", notification_min);
+    NSLog(@"# Second time = %d",secondTime);
     
     int return_value = current_quote_id;
     
-    if(current_day != current_calendar_day && current_hour >= notification_hour && current_min >= notification_min)
+    
+    // check if quote needs to be changed
+    bool change_quote = FALSE;
+    
+    if(current_day != current_calendar_day)
     {
+        if ( (current_hour > notification_hour) || (current_hour == notification_hour && current_min >= notification_min) )
+            change_quote = TRUE;
+    }
+    
+    if(secondTime == FALSE)
+        change_quote = TRUE;
+    
+    if(change_quote == TRUE)
+    {
+        NSLog(@"# Changing the quote ...");
+        
         NSArray *quotesImutable = [[NSUserDefaults standardUserDefaults] objectForKey:@"AvailableQuotes"];
         NSMutableArray *quotes = [quotesImutable mutableCopy];
         
-        // get number of advices and a random index
+        // get number of quotes and a random index
         int number_of_quotes = (int) [quotes count];
         int quote_index = arc4random_uniform(number_of_quotes);
         
-        // get the actual advice id
+        // get the actual quote id
         int quoteID = [[quotes objectAtIndex:quote_index] intValue];
         
-        NSLog(@"### Number of quotes = %d",number_of_quotes);
-        NSLog(@"### Quote index = %d",quote_index);
-        NSLog(@"### Next quote ID = %d",quoteID);
+        NSLog(@"# Number of quotes = %d",number_of_quotes);
+        NSLog(@"# Quote index = %d",quote_index);
+        NSLog(@"# Next quote ID = %d",quoteID);
         
-        // remove the advice id
+        // remove the quote id
         [quotes removeObjectAtIndex:quote_index];
         
         int number_of_quotes_after_removal = (int)[quotes count];
         
-        NSLog(@"### Quotes array after removal is: ");
+        NSLog(@"# Quotes array after removal is: ");
         printf("[");
         for (NSNumber *item in quotes)
             printf("%d ",[item intValue]);
         printf("]\n");
         
-        NSLog(@"### Number of quotes after removal = %d", number_of_quotes_after_removal);
+        NSLog(@"# Number of quotes after removal = %d", number_of_quotes_after_removal);
         
         if (number_of_quotes_after_removal == 0)
             [self initializeQuotesArray];
@@ -1121,16 +1004,50 @@
         
         return_value = quoteID;
     }
+    else NSLog(@"# Quote does not need to be changed");
     
     return return_value;
 }
 // *********************************************************************************
 
+-(void) sendAlert:(NSString*)alertTitle :(NSString*)alertContent
+{
+    // send a confirmation alert
+    UIAlertController * alert = [UIAlertController
+                                 alertControllerWithTitle:alertTitle
+                                 message:alertContent
+                                 preferredStyle:UIAlertControllerStyleAlert];
+    // create color for toolbar
+    UIColor *backgroundColorAlert = [UIColor colorWithRed:130.0f/255.0f
+                                                    green:130.0f/255.0f
+                                                     blue:130.0f/255.0f
+                                                    alpha:1.0f];
+    UIView *firstSubview = alert.view.subviews.firstObject;
+    UIView *alertContentView = firstSubview.subviews.firstObject;
+    for (UIView *subSubView in alertContentView.subviews) { //This is main catch
+        subSubView.backgroundColor = backgroundColorAlert;//Here you change background
+    }
+    
+    UIAlertAction* okButton = [UIAlertAction
+                               actionWithTitle:@"I am successful"
+                               style:UIAlertActionStyleDefault
+                               handler:^(UIAlertAction * action) {
+                                   //Handle no, thanks button
+                               }];
+    
+    [alert addAction:okButton];
+    [self presentViewController:alert animated:YES completion:nil];
+    [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
+                                             green:165.0f/255.0f
+                                              blue:0.0f/255.0f
+                                             alpha:1.0f]];
+
+}
 
 // ******************************************************** CANCEL NOTIFICATION HOUR
 -(void) cancelNotificationHour
 {
-    NSLog(@"Notification hour canceled \n");
+    NSLog(@"# Notification hour canceled");
     
     _toolbarNotification.hidden = YES;
     _datePickerNotification.hidden = YES;
