@@ -8,9 +8,16 @@
 
 #import <UIKit/UIKit.h>
 
+#import "DBManager.h"
+
+@class ViewController;
+@class LoadingViewController;
+
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
+
+
 
 
 @end

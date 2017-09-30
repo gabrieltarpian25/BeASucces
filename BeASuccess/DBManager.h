@@ -13,7 +13,11 @@
 @interface DBManager : NSObject
 {
     NSString *databasePath;
+    BOOL is_database_open;
 }
+
+-(BOOL) openDatabase;
+-(void) closeDatabase;
 
 // returns the instance of the database
 +(DBManager*) getSharedInstance;

@@ -12,6 +12,7 @@
 // Google ads
 @import GoogleMobileAds;
 @class GADBannerView;
+@class LoadingViewController;
 
 ///    Notification become independent from UIKit
 @import UserNotifications;
@@ -45,6 +46,7 @@
 @property (nonatomic, strong) IBOutlet UIDatePicker      *datePickerNotification;
 @property (nonatomic, strong) IBOutlet UIToolbar         *toolbarNotification;
 
+@property(strong,nonatomic)LoadingViewController *loadingViewController;
 
 @end
 

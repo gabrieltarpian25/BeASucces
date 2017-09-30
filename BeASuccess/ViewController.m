@@ -24,6 +24,8 @@
 // used for internet connection
 #import "Reachability.h"
 
+#import "MBProgressHUD.h"
+
 @interface ViewController ()
 
 @end
@@ -35,55 +37,92 @@
 
 -(void) viewDidAppear:(BOOL)animated
 {
+    
     [super viewDidAppear:animated];
     // Start coding from here
     
     [NSThread sleepForTimeInterval:1.2f];
     
-    int adviceId = [self calculateAdviceID];
-    
-    NSString *advice = [[DBManager getSharedInstance] getAdviceByID:adviceId];
-    NSLog(@"# Current advice text is : %@",advice);
-    
-    bool initial_advice = [[NSUserDefaults standardUserDefaults] boolForKey:@"InitialAdviceDisplayed"];
-    
-    if(initial_advice == FALSE)
+    bool initial_advice_displayed = [[NSUserDefaults standardUserDefaults] boolForKey:@"InitialAdviceDisplayed"];
+    if(initial_advice_displayed == TRUE)
     {
-        NSLog(@"# Displaying initial advice");
-        [self sendAlert:@"Hey, successful!" :@"I am your success assistant. Before you start using this app, you should define what success means to you. Success is not what society think it is. Success is yours! Sit down and think about all areas of life (health, relationships, social, career, financial, spiritual). If you haven't found your passion yet, don't worry! You're not alone! In this app you will find interesting definitions of success, hope it will help you find yours! By the way, everytime you open the app, I will give you an advice about life. I gathered these advices from the best life coaches of the world and I really want to share them with you. Take advantage of them!\n\n Thank you for downloading the app, let's reach our goals together!"];
-        [[NSUserDefaults standardUserDefaults] setBool:TRUE forKey:@"InitialAdviceDisplayed"];
+        int adviceId = [self calculateAdviceID];
+        NSString *advice = [[DBManager getSharedInstance] getAdviceByID:adviceId];
+        NSLog(@"# Current advice text is : %@",advice);
+        
+        [self sendAlert:@"Hey, successful, it's me! My advice for you is ..." :advice];
     }
-    else [self sendAlert:@"Hey, successful, it's me! My advice for you is ..." :advice];
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     
-    [[NSUserDefaults standardUserDefaults] setInteger:0 forKey:@"CurrentDay"];
-    
-    // Get screen dimension
-    CGRect screenRect = [[UIScreen mainScreen] bounds];
-    int width = screenRect.size.width;
-    int height = screenRect.size.height;
+    // set icon badge to 0
+    [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
     
     // Get if this is the first time of running the app
     BOOL boSecondTime = [[NSUserDefaults standardUserDefaults] boolForKey:@"SecondTime"];
+    
     if(boSecondTime == NO)
     {
-        // create push notification when running app for first time
-        [self createPushNotification:9 m:0 boAlert:NO];
-        [self initializeAdvicesArray];
-        [self initializeQuotesArray];
-    }
-    
+        // set current day as 0
+        [[NSUserDefaults standardUserDefaults] setInteger:0 forKey:@"CurrentDay"];
+        
+        // Get screen dimension
+        CGRect screenRect = [[UIScreen mainScreen] bounds];
+        int width = screenRect.size.width;
+        int height = screenRect.size.height;
+        
+        // Create wallpaper
+        UIImageView *imageHolder = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, width, height)];
+        UIImage *image = [UIImage imageNamed:@"Success"];
+        imageHolder.image = image;
+        
+        // create black overlay
+        UIView *overlay = [[UIView alloc] initWithFrame:CGRectMake(0, 0, width, height)];
+        [overlay setBackgroundColor:[UIColor colorWithRed:0 green:0 blue:0 alpha:0.7]];
+        [imageHolder addSubview:overlay];
+        
+        [self.view addSubview:imageHolder];
+        MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+        // hud.mode = MBProgressHUDModeAnnularDeterminate;
+        hud.label.text = @"Setting up everything for you ...";
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            // create push notification when running app for first time
+            [self createPushNotification:9 m:0 boAlert:NO];
+            [self initializeAdvicesArray];
+            [self initializeQuotesArray];
+            
+            [hud hideAnimated:YES];
+            [self displayQuote];
+            [self showInitialIntro_1];
+            
+            [[NSUserDefaults standardUserDefaults] setBool:TRUE forKey:@"InitialAdviceDisplayed"];
+        });
+        
+    } else [self displayQuote];
+}
+
+-(void) displayQuote
+{
     int quoteId = [self calculateQuoteID];
-    //int quoteId = 49;
+    //int quoteId = 99;
+    
+    // Get if this is the first time of running the app
+    BOOL boSecondTime = [[NSUserDefaults standardUserDefaults] boolForKey:@"SecondTime"];
     
     if(boSecondTime == FALSE)
         [[NSUserDefaults standardUserDefaults]setBool:YES forKey:@"SecondTime"];
     
     NSString *imageName = [[DBManager getSharedInstance] getCategoryByID:quoteId];
+    
+    // Get screen dimension
+    CGRect screenRect = [[UIScreen mainScreen] bounds];
+    int width = screenRect.size.width;
+    int height = screenRect.size.height;
     
     // Create wallpaper
     UIImageView *imageHolder = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, width, height)];
@@ -95,9 +134,6 @@
     [overlay setBackgroundColor:[UIColor colorWithRed:0 green:0 blue:0 alpha:0.7]];
     [imageHolder addSubview:overlay];
     [self.view addSubview:imageHolder];
-    
-    // create toolbars
-    [self vCreateToolbars:width];
     
     // creating the quote text label
     int labelPosX = 5;
@@ -119,7 +155,8 @@
     NSString *finalString = [NSString stringWithFormat:@"%@\n\n%@", quote, author];
     
     // create the font
-    UIFont *textViewfont = [UIFont fontWithName:@"Noteworthy-Bold" size:25];
+    int font_size = [self calculateFontSize:finalString];
+    UIFont *textViewfont = [UIFont fontWithName:@"Noteworthy-Bold" size:font_size];
     
     // text color
     UIColor *textColor = [UIColor colorWithRed:255.0f/255.0f
@@ -145,15 +182,7 @@
     // Vertical center alignment
     [self adjustContentSize:_textQuote];
     
-    // create positions for copyright text
-    int textPosX = width - 120;
-    int textPosY;
-    if( height < 500)
-        textPosY =  height - 35; // Air, Air 2, Pro ( 9.7 ),
-    else textPosY = height - 40;
-    int textWidth = width - textPosX;
-    int textHeight = height - textPosY;
-    _textAuthor = [[UITextView alloc]initWithFrame:CGRectMake(textPosX, textPosY,textWidth,textHeight)];
+    _textAuthor = [[UITextView alloc]initWithFrame:CGRectMake(0, 0, 100,100)];
     
     // create the author text
     NSString *textCopyright = [NSString stringWithFormat:@"RoadToSuccess\n%cGabriel Tarpian",169];
@@ -164,6 +193,17 @@
     _textAuthor.backgroundColor = [UIColor clearColor];
     _textAuthor.textColor = textColor;
     [_textAuthor setUserInteractionEnabled:NO];
+    
+    // check if heigh needed by text is bigger than the height
+    CGSize text_size = _textAuthor.contentSize;
+    int height_needed = (int) text_size.height;
+    int width_needed = (int) text_size.width;
+    
+    // create positions for copyright text
+    int textPosX = width - width_needed;
+    int textPosY = height - height_needed;
+    NSLog(@"Text posX = %d, posY = %d",textPosX, textPosY);
+    _textAuthor.frame = CGRectMake(textPosX, textPosY, width_needed, height_needed);
     
     // create the banner
     int bannerPosX = 0;
@@ -186,6 +226,9 @@
      
      [self.bannerView loadRequest:request];
      */
+    
+    // create toolbars
+    [self vCreateToolbars:width];
     
     // add components to main view
     [self.view addSubview:_textQuote];
@@ -308,12 +351,15 @@
 
 -(void) vCreateToolbars:(int)width
 {
+    NSLog(@"width is %d",width);
+    
     // create the intro toolbar
     _rightArrowToolbar = [[UIToolbar alloc]init];
     _rightArrowToolbar.frame = CGRectMake(0, 0, width, 40);
     
     // ************* Settings button
-    UIImage *imgArrowRight = [UIImage imageNamed:@"Settings.png"];
+    UIImage *aux = [UIImage imageNamed:@"Settings.png"];
+    UIImage *imgArrowRight = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
     
     UIButton *btnArrowRight = [UIButton buttonWithType:UIButtonTypeCustom];
     [btnArrowRight addTarget:self action:@selector(showMainToolbar:) forControlEvents:UIControlEventTouchUpInside];
@@ -332,61 +378,67 @@
     _mainToolbar.frame = CGRectMake(-width, 0, width, 40);
     
     // ************* Right arrow button
-    UIImage *imgArrowLeft = [UIImage imageNamed:@"arrowLeft.png"];
+    aux = [UIImage imageNamed:@"LeftArrow.png"];
+    UIImage *imgArrowLeft = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
     
     UIButton *btnArrowLeft = [UIButton buttonWithType:UIButtonTypeCustom];
     [btnArrowLeft addTarget:self action:@selector(showArrowToolbar:) forControlEvents:UIControlEventTouchUpInside];
-    btnArrowLeft.bounds = CGRectMake( 0, 5, 25, 25 );
+    // btnArrowLeft.bounds = CGRectMake( 0, 5, 25, 25 );
     [btnArrowLeft setImage:imgArrowLeft forState:UIControlStateNormal];
     [btnArrowLeft setShowsTouchWhenHighlighted:TRUE];
     _barBtnArrowLeft = [[UIBarButtonItem alloc] initWithCustomView:btnArrowLeft];
     
     // ************* Settings button
-    UIImage *imgSettings = [UIImage imageNamed:@"Clock.png"];
+    aux = [UIImage imageNamed:@"Clock.png"];
+    UIImage *imgSettings = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
     
     UIButton *btnSettings = [UIButton buttonWithType:UIButtonTypeCustom];
     [btnSettings addTarget:self action:@selector(changeNotificationTime:) forControlEvents:UIControlEventTouchUpInside];
-    btnSettings.bounds = CGRectMake( 0, 5, 25, 25 );
+    // btnSettings.bounds = CGRectMake( btnSettings.bounds.origin.x, btnSettings.bounds.origin.y, 35, 35 );
     [btnSettings setImage:imgSettings forState:UIControlStateNormal];
     [btnSettings setShowsTouchWhenHighlighted:TRUE];
     _barBtnSettings = [[UIBarButtonItem alloc] initWithCustomView:btnSettings];
     
     // ************ Save button
-    UIImage *imgSave = [UIImage imageNamed:@"saveLogo.png"];
+    aux = [UIImage imageNamed:@"Save.png"];
+    UIImage *imgSave = [self imageWithImage:aux convertToSize:CGSizeMake(30, 30)];
     
     UIButton *btnSave = [UIButton buttonWithType:UIButtonTypeCustom];
     [btnSave addTarget:self action:@selector(saveButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
-    btnSave.bounds = CGRectMake( 100, 5, 25, 25 );
+    // btnSave.bounds = CGRectMake( btnSave.bounds.origin.x, btnSave.bounds.origin.y, 40, 40 );
     [btnSave setImage:imgSave forState:UIControlStateNormal];
     [btnSave setShowsTouchWhenHighlighted:TRUE];
     _barBtnSave = [[UIBarButtonItem alloc] initWithCustomView:btnSave];
     
     // ************ Facebook button
-    UIImage *imgFacebook = [UIImage imageNamed:@"facebookLogo.png"];
+    aux = [UIImage imageNamed:@"Facebook.png"];
+    UIImage *imgFacebook = [self imageWithImage:aux convertToSize:CGSizeMake(40, 40)];
     
     UIButton *btnFacebook = [UIButton buttonWithType:UIButtonTypeCustom];
     [btnFacebook addTarget:self action:@selector(facebookButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
-    btnFacebook.bounds = CGRectMake( 200, 5, 32, 32 );
+    // btnFacebook.bounds = CGRectMake( 200, 5, 32, 32 );
     [btnFacebook setImage:imgFacebook forState:UIControlStateNormal];
     [btnFacebook setShowsTouchWhenHighlighted:TRUE];
     _barBtnFacebook = [[UIBarButtonItem alloc] initWithCustomView:btnFacebook];
     
     // ************ Twitter button
-    UIImage *imgTwitter = [UIImage imageNamed:@"twitter.png"];
+    aux = [UIImage imageNamed:@"Twitter.png"];
+    UIImage *imgTwitter = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
     
     UIButton *btnTwitter = [UIButton buttonWithType:UIButtonTypeCustom];
     [btnTwitter addTarget:self action:@selector(twitterButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
-    btnTwitter.bounds = CGRectMake( 300, 5, 27, 27 );
+    // btnTwitter.bounds = CGRectMake( 300, 5, 27, 27 );
     [btnTwitter setImage:imgTwitter forState:UIControlStateNormal];
     [btnTwitter setShowsTouchWhenHighlighted:TRUE];
     _barBtnTwitter = [[UIBarButtonItem alloc] initWithCustomView:btnTwitter];
     
     // ************ Info button
-    UIImage *imgInfo = [UIImage imageNamed:@"Info"];
+    aux = [UIImage imageNamed:@"Info"];
+    UIImage *imgInfo = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
     
     UIButton *btnInfo = [UIButton buttonWithType:UIButtonTypeCustom];
     [btnInfo addTarget:self action:@selector(infoButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
-    btnInfo.bounds = CGRectMake( 300, 5, 27, 27 );
+    // btnInfo.bounds = CGRectMake( 300, 5, 27, 27 );
     [btnInfo setImage:imgInfo forState:UIControlStateNormal];
     [btnInfo setShowsTouchWhenHighlighted:TRUE];
     _barBtnInfo = [[UIBarButtonItem alloc] initWithCustomView:btnInfo];
@@ -503,6 +555,7 @@
 // ******************************************************** CREATE PUSH NOTIFICATION
 -(void) createPushNotification:(int)hour m:(int)minute boAlert:(BOOL)alert
 {
+    
     // first of all, cancel all notifications
     [[UNUserNotificationCenter currentNotificationCenter] removeAllPendingNotificationRequests];
     
@@ -551,6 +604,8 @@
                 
                 [self sendAlert:@"Confirmation" :message];
             }
+            
+            NSLog(@"Notification time changed to %02d:%02d",hour,minute);
         }
         else
         {
@@ -1010,6 +1065,8 @@
 }
 // *********************************************************************************
 
+
+// ******************************************************** SEND ALERT
 -(void) sendAlert:(NSString*)alertTitle :(NSString*)alertContent
 {
     // send a confirmation alert
@@ -1043,6 +1100,205 @@
                                              alpha:1.0f]];
 
 }
+// *********************************************************************************
+
+// ******************************************************** CALCULATE FONT SIZE
+-(int) calculateFontSize:(NSString*) quote
+{
+    NSLog(@"Calculating font size ...");
+    int font_size = 30;
+    BOOL result = FALSE;
+    
+    // create aux text view and assign the quote
+    UITextView *aux_text_view = [[UITextView alloc] initWithFrame:_textQuote.frame];
+    aux_text_view.text = quote;
+    
+    while(result == FALSE)
+    {
+        // create the font
+        UIFont *textViewfont = [UIFont fontWithName:@"Noteworthy-Bold" size:font_size];
+        aux_text_view.font = textViewfont;
+        
+       [self adjustContentSize:aux_text_view];
+        
+        // check if heigh needed by text is bigger than the height
+        CGSize text_size = aux_text_view.contentSize;
+        float height_needed_by_text = text_size.height;
+        
+        if(height_needed_by_text > aux_text_view.frame.size.height)
+            font_size--;
+        else
+        {
+            result = TRUE;
+            NSLog(@"Height needed by text is %f",height_needed_by_text);
+        }
+    }
+    
+    NSLog(@"Font size is %d",font_size);
+    NSLog(@"Text quote height is %f",_textQuote.frame.size.height);
+    NSLog(@"Aux text quote height is %f",aux_text_view.frame.size.height);
+    
+    return font_size;
+}
+
+// ******************************************************** SHOW INITIAL INTRO 1
+-(void) showInitialIntro_1
+{
+    
+    NSString *intro = @"I am 23 years old. A few years ago, I had no idea what I would do with my life. I discovered my passion for programming late in high school. I was a decent programmer in college and I got a decent job as a programmer. Everything was decent in my life. Until one day, when I said “Enough! I do no want a decent life, I want a wonderful life!”. So I started my journey for greatness and mastery by implementing new habits like getting up early and reading/ working out/ programming, spending more time with the loved ones, helping others. I also cut most of the bad habits like watching TV, sleeping too much, spending too much time on social networks. And here I am, after 1.5 years, having a great health, relationship with babe is stronger than ever, almost doubled my earnings, got an amazing job and released this iOS app :). My life now concentrates on three words: loving, giving, growing. It’s not something huge, but it is something and many more will come! I invite you to join me and others in this adventure for greatness and mastery and your life will never be the same.\n\n P.S.: A year from now you wish you had started today.";
+    
+    // send a confirmation alert
+    UIAlertController * alert = [UIAlertController
+                                 alertControllerWithTitle:@"Hi, my name is Gabriel Tarpian..."
+                                 message:intro
+                                 preferredStyle:UIAlertControllerStyleAlert];
+    // create color for toolbar
+    UIColor *backgroundColorAlert = [UIColor colorWithRed:130.0f/255.0f
+                                                    green:130.0f/255.0f
+                                                     blue:130.0f/255.0f
+                                                    alpha:1.0f];
+    UIView *firstSubview = alert.view.subviews.firstObject;
+    UIView *alertContentView = firstSubview.subviews.firstObject;
+    for (UIView *subSubView in alertContentView.subviews) { //This is main catch
+        subSubView.backgroundColor = backgroundColorAlert;//Here you change background
+    }
+    
+    UIAlertAction* okButton = [UIAlertAction
+                               actionWithTitle:@"I am successful ->"
+                               style:UIAlertActionStyleDefault
+                               handler:^(UIAlertAction * action) {
+                                   //Handle okButton
+                                   [self showInitialIntro_2];
+                                   
+                               }];
+    
+    [alert addAction:okButton];
+    
+    [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
+                                             green:165.0f/255.0f
+                                              blue:0.0f/255.0f
+                                             alpha:1.0f]];
+    
+    [self presentViewController:alert animated:YES completion:nil];
+    
+}
+
+// ******************************************************** SHOW INITIAL INTRO 2
+-(void) showInitialIntro_2
+{
+    NSString *intro = @"I am your success assistant. Before you start using this app, you should define what success means to you. Success is not what society think it is. Success is yours! Sit down and think about all areas of life (health, relationships, social, career, financial, spiritual). If you haven't found your passion yet, don't worry! You're not alone! In this app you will find interesting definitions of success, hope it will help you find yours!\n\n Thank you for downloading the app, let's reach our goals together!";
+    
+    // send a confirmation alert
+    UIAlertController * alert = [UIAlertController
+                                 alertControllerWithTitle:@"Hey, successful! It's me..."
+                                 message:intro
+                                 preferredStyle:UIAlertControllerStyleAlert];
+    // create color for toolbar
+    UIColor *backgroundColorAlert = [UIColor colorWithRed:130.0f/255.0f
+                                                    green:130.0f/255.0f
+                                                     blue:130.0f/255.0f
+                                                    alpha:1.0f];
+    UIView *firstSubview = alert.view.subviews.firstObject;
+    UIView *alertContentView = firstSubview.subviews.firstObject;
+    for (UIView *subSubView in alertContentView.subviews) { //This is main catch
+        subSubView.backgroundColor = backgroundColorAlert;//Here you change background
+    }
+    
+    UIAlertAction* okButton = [UIAlertAction
+                               actionWithTitle:@"I am successful ->"
+                               style:UIAlertActionStyleDefault
+                               handler:^(UIAlertAction * action) {
+                                   //Handle no, thanks button
+                                   [self showInitialIntro_3];
+                               }];
+    
+    [alert addAction:okButton];
+    
+    [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
+                                             green:165.0f/255.0f
+                                              blue:0.0f/255.0f
+                                             alpha:1.0f]];
+    
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
+// ******************************************************** SHOW INITIAL INTRO 3
+-(void) showInitialIntro_3
+{
+    NSString *intro = @"Everytime you open the app, I will give you an advice about life. I gathered these advices from the best life coaches of the world and I really want to share them with you. Take advantage of them!\n\n Thank you for downloading the app, let's reach our goals together!";
+    
+    // send a confirmation alert
+    UIAlertController * alert = [UIAlertController
+                                 alertControllerWithTitle:@"Hey, successful! It's me..."
+                                 message:intro
+                                 preferredStyle:UIAlertControllerStyleAlert];
+    // create color for toolbar
+    UIColor *backgroundColorAlert = [UIColor colorWithRed:130.0f/255.0f
+                                                    green:130.0f/255.0f
+                                                     blue:130.0f/255.0f
+                                                    alpha:1.0f];
+    UIView *firstSubview = alert.view.subviews.firstObject;
+    UIView *alertContentView = firstSubview.subviews.firstObject;
+    for (UIView *subSubView in alertContentView.subviews) { //This is main catch
+        subSubView.backgroundColor = backgroundColorAlert;//Here you change background
+    }
+    
+    UIAlertAction* okButton = [UIAlertAction
+                               actionWithTitle:@"I am successful ->"
+                               style:UIAlertActionStyleDefault
+                               handler:^(UIAlertAction * action) {
+                                   //Handle no, thanks button
+                                   
+                                   [self showInitialIntro_4];
+                               }];
+    
+    [alert addAction:okButton];
+    
+    [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
+                                             green:165.0f/255.0f
+                                              blue:0.0f/255.0f
+                                             alpha:1.0f]];
+    
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
+// ******************************************************** SHOW INITIAL INTRO 4
+-(void) showInitialIntro_4
+{
+    NSString *intro = @"There is a small add at the bottom of the screen. It will not bother you and will not interfere with our content. If you have the possibility, please use our app with internet connection turned ON, 50% of the earnings will be donated to different charities. I thank you in advance for your nobility. \n\n Thank you for downloading the app, let's reach our goals together!";
+    
+    // send a confirmation alert
+    UIAlertController * alert = [UIAlertController
+                                 alertControllerWithTitle:@"Hey, successful! It's me..."
+                                 message:intro
+                                 preferredStyle:UIAlertControllerStyleAlert];
+    // create color for toolbar
+    UIColor *backgroundColorAlert = [UIColor colorWithRed:130.0f/255.0f
+                                                    green:130.0f/255.0f
+                                                     blue:130.0f/255.0f
+                                                    alpha:1.0f];
+    UIView *firstSubview = alert.view.subviews.firstObject;
+    UIView *alertContentView = firstSubview.subviews.firstObject;
+    for (UIView *subSubView in alertContentView.subviews) { //This is main catch
+        subSubView.backgroundColor = backgroundColorAlert;//Here you change background
+    }
+    
+    UIAlertAction* okButton = [UIAlertAction
+                               actionWithTitle:@"I am successful"
+                               style:UIAlertActionStyleDefault
+                               handler:^(UIAlertAction * action) {
+                                   //Handle no, thanks button
+                               }];
+    
+    [alert addAction:okButton];
+    
+    [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
+                                             green:165.0f/255.0f
+                                              blue:0.0f/255.0f
+                                             alpha:1.0f]];
+    
+    [self presentViewController:alert animated:YES completion:nil];
+}
 
 // ******************************************************** CANCEL NOTIFICATION HOUR
 -(void) cancelNotificationHour
@@ -1065,6 +1321,16 @@
     CGFloat deadSpace = ([tv bounds].size.height - [tv contentSize].height);
     CGFloat inset = MAX(0, deadSpace/2.0);
     tv.contentInset = UIEdgeInsetsMake(inset, tv.contentInset.left, inset, tv.contentInset.right);
+}
+// *********************************************************************************
+
+// ******************************************************** RESIZE IMAGE
+- (UIImage *)imageWithImage:(UIImage *)image convertToSize:(CGSize)size {
+    UIGraphicsBeginImageContext(size);
+    [image drawInRect:CGRectMake(0, 0, size.width, size.height)];
+    UIImage *destImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return destImage;
 }
 // *********************************************************************************
 
