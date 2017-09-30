@@ -12,6 +12,10 @@
 		587092AA1EE2BBD6005ECEC8 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = 587092A91EE2BBD6005ECEC8 /* Reachability.m */; };
 		58A8321F1F7F86EF0080E9A6 /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 58A8321E1F7F86EF0080E9A6 /* MBProgressHUD.m */; };
 		58DA94131E59FAC00054075E /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 58DA94121E59FAC00054075E /* libsqlite3.tbd */; settings = {ATTRIBUTES = (Required, ); }; };
+		58E7524B1F7FA19D00D17449 /* Bolts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 58E752471F7FA19D00D17449 /* Bolts.framework */; };
+		58E7524C1F7FA19D00D17449 /* FBSDKShareKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 58E752481F7FA19D00D17449 /* FBSDKShareKit.framework */; };
+		58E7524D1F7FA19D00D17449 /* FBSDKCoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 58E752491F7FA19D00D17449 /* FBSDKCoreKit.framework */; };
+		58E7524E1F7FA19D00D17449 /* FBSDKLoginKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 58E7524A1F7FA19D00D17449 /* FBSDKLoginKit.framework */; };
 		58E9BCEC1E3FB8EF00D83438 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 58E9BCEB1E3FB8EF00D83438 /* main.m */; };
 		58E9BCEF1E3FB8EF00D83438 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 58E9BCEE1E3FB8EF00D83438 /* AppDelegate.m */; };
 		58E9BCF21E3FB8EF00D83438 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 58E9BCF11E3FB8EF00D83438 /* ViewController.m */; };
@@ -48,6 +52,10 @@
 		58A8321D1F7F86EF0080E9A6 /* MBProgressHUD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MBProgressHUD.h; sourceTree = "<group>"; };
 		58A8321E1F7F86EF0080E9A6 /* MBProgressHUD.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
 		58DA94121E59FAC00054075E /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+		58E752471F7FA19D00D17449 /* Bolts.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Bolts.framework; path = "../FacebookSDKs-iOS-4-2/Bolts.framework"; sourceTree = "<group>"; };
+		58E752481F7FA19D00D17449 /* FBSDKShareKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKShareKit.framework; path = "../FacebookSDKs-iOS-4-2/FBSDKShareKit.framework"; sourceTree = "<group>"; };
+		58E752491F7FA19D00D17449 /* FBSDKCoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKCoreKit.framework; path = "../FacebookSDKs-iOS-4-2/FBSDKCoreKit.framework"; sourceTree = "<group>"; };
+		58E7524A1F7FA19D00D17449 /* FBSDKLoginKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKLoginKit.framework; path = "../FacebookSDKs-iOS-4-2/FBSDKLoginKit.framework"; sourceTree = "<group>"; };
 		58E9BCE71E3FB8EF00D83438 /* BeASuccess.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BeASuccess.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		58E9BCEB1E3FB8EF00D83438 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		58E9BCED1E3FB8EF00D83438 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -73,6 +81,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				58E7524B1F7FA19D00D17449 /* Bolts.framework in Frameworks */,
+				58E7524C1F7FA19D00D17449 /* FBSDKShareKit.framework in Frameworks */,
+				58E7524D1F7FA19D00D17449 /* FBSDKCoreKit.framework in Frameworks */,
+				58E7524E1F7FA19D00D17449 /* FBSDKLoginKit.framework in Frameworks */,
 				58267D1B1EC87D1600B49105 /* GoogleMobileAds.framework in Frameworks */,
 				585E175A1E9A887400B0C5AD /* iAd.framework in Frameworks */,
 				58DA94131E59FAC00054075E /* libsqlite3.tbd in Frameworks */,
@@ -99,6 +111,10 @@
 		58DA94111E59FABF0054075E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				58E752471F7FA19D00D17449 /* Bolts.framework */,
+				58E752491F7FA19D00D17449 /* FBSDKCoreKit.framework */,
+				58E7524A1F7FA19D00D17449 /* FBSDKLoginKit.framework */,
+				58E752481F7FA19D00D17449 /* FBSDKShareKit.framework */,
 				585E17591E9A887400B0C5AD /* iAd.framework */,
 				58DA94121E59FAC00054075E /* libsqlite3.tbd */,
 			);

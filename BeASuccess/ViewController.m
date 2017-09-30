@@ -26,6 +26,11 @@
 
 #import "MBProgressHUD.h"
 
+// import for facebook
+#import <FBSDKLoginKit/FBSDKLoginKit.h>
+#import <FBSDKShareKit/FBSDKShareKit.h>
+#import <FBSDKCoreKit/FBSDKCoreKit.h>
+
 @interface ViewController ()
 
 @end
@@ -724,40 +729,18 @@
     _mainToolbar.hidden = NO;
     _bannerView.hidden = NO;
     
-    // post on facebook
-    if ([SLComposeViewController isAvailableForServiceType:SLServiceTypeFacebook])
-    {
-        SLComposeViewController *facebookShare = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeFacebook];
-        
-        NSString *shareText = @"#RoadToSuccess #QuoteOfTheDay";
-        [facebookShare setInitialText:shareText];
-        [facebookShare addImage:image];
-        
-        [facebookShare setCompletionHandler:^(SLComposeViewControllerResult result)
-         {
-             
-             switch (result) {
-                 case SLComposeViewControllerResultCancelled:
-                     NSLog(@"# Facebook Post Canceled");
-                     break;
-                 case SLComposeViewControllerResultDone:
-                     NSLog(@"# Facebook Post Sucessful");
-                     break;
-                 default:
-                     break;
-             }
-             
-             [self dismissViewControllerAnimated:YES completion:nil];
-         }];
-        
-        [self presentViewController:facebookShare animated:YES completion:nil];
-    }
-    else
-    {
-        NSLog(@"# ERROR: Facebook app not installed");
-        
-        [self sendAlert:@"Error" :@"Error while connecting to your Facebook account. Facebook app might not be installed or your account is not linked to the app. Please solve this and try again"];
-    }
+    FBSDKSharePhoto *photo = [[FBSDKSharePhoto alloc] init];
+    photo.image = image;
+    photo.caption = @"Quote of the day ...";
+    photo.userGenerated = YES;
+    FBSDKSharePhotoContent *content = [[FBSDKSharePhotoContent alloc] init];
+    content.photos = @[photo];
+    content.hashtag = [FBSDKHashtag hashtagWithString:@"#RoadToSuccess"];
+    
+    [FBSDKShareDialog showFromViewController:self
+                                 withContent:content
+                                    delegate:nil];
+    
 }
 // *********************************************************************************
 
