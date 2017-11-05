@@ -3196,7 +3196,7 @@ static sqlite3_stmt *statement = nil;
     // quote id = 357
     boResult = [self insertDataQuote:357
                               author:@"Steve Jobs"
-                               quote:@"Stay hungy! Stay foolish"
+                               quote:@"Stay hungry! Stay foolish"
                             category:@"Education"];
     if(boResult == FALSE)
         return FALSE;
@@ -4149,7 +4149,7 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 120
-    boResult = [self insertDataAdvice:120 advice:@"Read something inspirational right before bed and after waking. You could start with this app :) !"];
+    boResult = [self insertDataAdvice:120 advice:@"Read something inspirational right before going to bed and after waking up. You could start with this app :) !"];
     if(boResult == FALSE)
         return FALSE;
     

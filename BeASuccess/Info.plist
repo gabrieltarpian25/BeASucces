@@ -23,7 +23,7 @@
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>fb697031653822828</string>
+				<string>twitterkit-YtrTHHT5vMdPMxSsSOTCBudlp</string>
 			</array>
 		</dict>
 	</array>
@@ -35,9 +35,10 @@
 	<string>RoadToSuccess</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
-		<string>fbapi</string>
-		<string>fb-messenger-api</string>
+		<string>twitter</string>
+		<string>twitterauth</string>
 		<string>fbauth2</string>
+		<string>fbapi</string>
 		<string>fbshareextension</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
@@ -60,18 +61,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>CFBundleURLTypes</key>
-	<array>
-  	<dict>
-  	<key>CFBundleURLSchemes</key>
-  	<array>
-    	<string>fb697031653822828</string>
-  	</array>
-  	</dict>
-	</array>
-	<key>FacebookAppID</key>
-	<string>697031653822828</string>
-	<key>FacebookDisplayName</key>
-	<string>RoadToSuccess</string>
 </dict>
 </plist>

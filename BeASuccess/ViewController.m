@@ -31,6 +31,9 @@
 #import <FBSDKShareKit/FBSDKShareKit.h>
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
 
+// import for twitter
+#import <TwitterKit/TwitterKit.h>
+
 @interface ViewController ()
 
 @end
@@ -55,7 +58,7 @@
         NSString *advice = [[DBManager getSharedInstance] getAdviceByID:adviceId];
         NSLog(@"# Current advice text is : %@",advice);
         
-        [self sendAlert:@"Hey, successful, it's me! My advice for you is ..." :advice];
+        [self sendAlert:@"Hey, successful, it's me! My advice for you is ..." :advice:false];
     }
 }
 
@@ -154,7 +157,7 @@
     if(quote == nil || author == nil)
     {
         NSLog(@"# ERROR (ViewController): Unable to retreive quote and author from database");
-        exit(-1);
+        [self sendAlert:@"Error" :@"Failed to retrieve quote from database. Please reinstall the application." :false];
     }
     
     NSString *finalString = [NSString stringWithFormat:@"%@\n\n%@", quote, author];
@@ -363,28 +366,28 @@
     _rightArrowToolbar.frame = CGRectMake(0, 0, width, 40);
     
     // ************* Settings button
-    UIImage *aux = [UIImage imageNamed:@"Settings.png"];
-    UIImage *imgArrowRight = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
+    UIImage *imgSettings = [UIImage imageNamed:@"Settings_r.png"];
+    // UIImage *imgArrowRight = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
     
-    UIButton *btnArrowRight = [UIButton buttonWithType:UIButtonTypeCustom];
-    [btnArrowRight addTarget:self action:@selector(showMainToolbar:) forControlEvents:UIControlEventTouchUpInside];
-    btnArrowRight.bounds = CGRectMake( 0, 5, 25, 25 );
-    [btnArrowRight setImage:imgArrowRight forState:UIControlStateNormal];
-    [btnArrowRight setShowsTouchWhenHighlighted:TRUE];
-    _barBtnArrowRight = [[UIBarButtonItem alloc] initWithCustomView:btnArrowRight];
+    UIButton *btnSettings = [UIButton buttonWithType:UIButtonTypeCustom];
+    [btnSettings addTarget:self action:@selector(showMainToolbar:) forControlEvents:UIControlEventTouchUpInside];
+    btnSettings.bounds = CGRectMake( 0, 5, 25, 25 );
+    [btnSettings setImage:imgSettings forState:UIControlStateNormal];
+    [btnSettings setShowsTouchWhenHighlighted:TRUE];
+    _barBtnSettings = [[UIBarButtonItem alloc] initWithCustomView:btnSettings];
     
     // make visible items on the toolbar
     UIBarButtonItem *flexibleSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
-    NSArray *items = [NSArray arrayWithObjects: _barBtnArrowRight, flexibleSpace, flexibleSpace, nil];
+    NSArray *items = [NSArray arrayWithObjects: _barBtnSettings, flexibleSpace, flexibleSpace, nil];
     [_rightArrowToolbar setItems:items animated:YES];
     
     // create the toolbar
     _mainToolbar = [[UIToolbar alloc] init];
     _mainToolbar.frame = CGRectMake(-width, 0, width, 40);
     
-    // ************* Right arrow button
-    aux = [UIImage imageNamed:@"LeftArrow.png"];
-    UIImage *imgArrowLeft = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
+    // ************* Left arrow button
+    UIImage *imgArrowLeft = [UIImage imageNamed:@"LeftArrow_r.png"];
+    // UIImage *imgArrowLeft = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
     
     UIButton *btnArrowLeft = [UIButton buttonWithType:UIButtonTypeCustom];
     [btnArrowLeft addTarget:self action:@selector(showArrowToolbar:) forControlEvents:UIControlEventTouchUpInside];
@@ -393,20 +396,20 @@
     [btnArrowLeft setShowsTouchWhenHighlighted:TRUE];
     _barBtnArrowLeft = [[UIBarButtonItem alloc] initWithCustomView:btnArrowLeft];
     
-    // ************* Settings button
-    aux = [UIImage imageNamed:@"Clock.png"];
-    UIImage *imgSettings = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
+    // ************* Clock button
+    UIImage *imgClock = [UIImage imageNamed:@"Clock_r.png"];
+    // UIImage *imgSettings = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
     
-    UIButton *btnSettings = [UIButton buttonWithType:UIButtonTypeCustom];
-    [btnSettings addTarget:self action:@selector(changeNotificationTime:) forControlEvents:UIControlEventTouchUpInside];
-    // btnSettings.bounds = CGRectMake( btnSettings.bounds.origin.x, btnSettings.bounds.origin.y, 35, 35 );
-    [btnSettings setImage:imgSettings forState:UIControlStateNormal];
-    [btnSettings setShowsTouchWhenHighlighted:TRUE];
-    _barBtnSettings = [[UIBarButtonItem alloc] initWithCustomView:btnSettings];
+    UIButton *btnClock = [UIButton buttonWithType:UIButtonTypeCustom];
+    [btnClock addTarget:self action:@selector(changeNotificationTime:) forControlEvents:UIControlEventTouchUpInside];
+    // btnClock.bounds = CGRectMake( btnClock.bounds.origin.x, btnClock.bounds.origin.y, 35, 35 );
+    [btnClock setImage:imgClock forState:UIControlStateNormal];
+    [btnClock setShowsTouchWhenHighlighted:TRUE];
+    _barBtnClock = [[UIBarButtonItem alloc] initWithCustomView:btnClock];
     
     // ************ Save button
-    aux = [UIImage imageNamed:@"Save.png"];
-    UIImage *imgSave = [self imageWithImage:aux convertToSize:CGSizeMake(30, 30)];
+    UIImage *imgSave = [UIImage imageNamed:@"Save_r.png"];
+    // UIImage *imgSave = [self imageWithImage:aux convertToSize:CGSizeMake(30, 30)];
     
     UIButton *btnSave = [UIButton buttonWithType:UIButtonTypeCustom];
     [btnSave addTarget:self action:@selector(saveButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
@@ -416,8 +419,8 @@
     _barBtnSave = [[UIBarButtonItem alloc] initWithCustomView:btnSave];
     
     // ************ Facebook button
-    aux = [UIImage imageNamed:@"Facebook.png"];
-    UIImage *imgFacebook = [self imageWithImage:aux convertToSize:CGSizeMake(40, 40)];
+    UIImage *imgFacebook = [UIImage imageNamed:@"Facebook_r.png"];
+    // UIImage *imgFacebook = [self imageWithImage:aux convertToSize:CGSizeMake(40, 40)];
     
     UIButton *btnFacebook = [UIButton buttonWithType:UIButtonTypeCustom];
     [btnFacebook addTarget:self action:@selector(facebookButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
@@ -427,8 +430,8 @@
     _barBtnFacebook = [[UIBarButtonItem alloc] initWithCustomView:btnFacebook];
     
     // ************ Twitter button
-    aux = [UIImage imageNamed:@"Twitter.png"];
-    UIImage *imgTwitter = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
+    UIImage *imgTwitter = [UIImage imageNamed:@"Twitter_r.png"];
+    // UIImage *imgTwitter = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
     
     UIButton *btnTwitter = [UIButton buttonWithType:UIButtonTypeCustom];
     [btnTwitter addTarget:self action:@selector(twitterButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
@@ -438,8 +441,8 @@
     _barBtnTwitter = [[UIBarButtonItem alloc] initWithCustomView:btnTwitter];
     
     // ************ Info button
-    aux = [UIImage imageNamed:@"Info"];
-    UIImage *imgInfo = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
+    UIImage *imgInfo = [UIImage imageNamed:@"Info_r"];
+    // UIImage *imgInfo = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
     
     UIButton *btnInfo = [UIButton buttonWithType:UIButtonTypeCustom];
     [btnInfo addTarget:self action:@selector(infoButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
@@ -450,7 +453,7 @@
     
     // make visible items on the toolbar
     UIBarButtonItem *flexibleSpace2 = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
-    NSArray *items2 = [NSArray arrayWithObjects: _barBtnArrowLeft, flexibleSpace2, _barBtnSettings, flexibleSpace2, _barBtnSave,flexibleSpace2,  _barBtnFacebook, flexibleSpace2,  _barBtnTwitter, flexibleSpace2, _barBtnInfo, nil];
+    NSArray *items2 = [NSArray arrayWithObjects: _barBtnArrowLeft, flexibleSpace2, _barBtnClock, flexibleSpace2, _barBtnSave,flexibleSpace2,  _barBtnFacebook, flexibleSpace2,  _barBtnTwitter, flexibleSpace2, _barBtnInfo, nil];
     [_mainToolbar setItems:items2 animated:YES];
     
     // background color for rightArrowToolbar
@@ -479,11 +482,15 @@
 {
     NSLog(@"# Settings button is pressed...");
     
+    int display_width = self.view.frame.size.width;
+    int display_height = self.view.frame.size.height;
+    
     // set up the date picker
     _datePickerNotification = [[UIDatePicker alloc] init];
     _datePickerNotification.datePickerMode = UIDatePickerModeTime;
     _datePickerNotification.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    _datePickerNotification.frame = CGRectMake(0,400, self.view.frame.size.width, self.view.frame.size.height - 400);
+    int posYDatePicker = display_height - (display_height / 3);
+    _datePickerNotification.frame = CGRectMake(0, posYDatePicker, display_width, display_height - posYDatePicker);
     
     // create color
     UIColor *colorDatePicker = [UIColor colorWithRed:30.0f/255.0f
@@ -516,8 +523,9 @@
     UIBarButtonItem* doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:self action:@selector(notificationHourChanged)];
     [doneButton setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys: [UIColor orangeColor],  NSForegroundColorAttributeName,nil] forState:UIControlStateNormal];
     
-    UIBarButtonItem* notifButton = [[UIBarButtonItem alloc] initWithTitle:@"Notification hour" style:UIBarButtonItemStyleDone target:self action:nil];
+    UIBarButtonItem* notifButton = [[UIBarButtonItem alloc] initWithTitle:@"Notification Time" style:UIBarButtonItemStyleDone target:self action:nil];
     [notifButton setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys: [UIColor orangeColor],  NSForegroundColorAttributeName,nil] forState:UIControlStateNormal];
+    [notifButton setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys: [UIColor orangeColor],  NSForegroundColorAttributeName,nil] forState:UIControlStateDisabled];
     notifButton.enabled = NO;
     
     UIBarButtonItem* cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"Cancel" style:UIBarButtonItemStylePlain target:self action:@selector(cancelNotificationHour)];
@@ -607,7 +615,7 @@
             {
                 NSString *message = [[NSString alloc] initWithFormat:@"Notification time changed to %02d:%02d",hour,minute];
                 
-                [self sendAlert:@"Confirmation" :message];
+                [self sendAlert:@"Confirmation" : message: false];
             }
             
             NSLog(@"Notification time changed to %02d:%02d",hour,minute);
@@ -616,7 +624,7 @@
         {
             NSLog(@"# ERROR: NotificationRequest failed");
             
-            [self sendAlert:@"Confirmation" :@"Failed to change the notification time. Please try again"];
+            [self sendAlert:@"Confirmation" :@"Failed to change the notification time. Please try again":false];
         }
     }];
     
@@ -646,7 +654,7 @@
             else
             {
                 NSLog(@"# ERROR: Authorization status - Denied");
-                [self sendAlert:@"Error" :@"App did not receive access to Photo Library. Please go to Settings -> Privacy -> Photos and allow access to our app. Thank you"];
+                [self sendAlert:@"Error" :@"App did not receive access to Photo Library. Please go to Settings -> Privacy -> Photos and allow access to our app. Thank you":false];
             }
         }];
     }
@@ -657,7 +665,7 @@
             
             if (status == PHAuthorizationStatusAuthorized)
                 [self savePhoto];
-            else [self sendAlert:@"Error" :@"App did not receive access to Photo Library"];
+            else [self sendAlert:@"Error" :@"App did not receive access to Photo Library":false];
         }];
     }
     else if (status == PHAuthorizationStatusRestricted) {
@@ -667,7 +675,7 @@
             
             if (status == PHAuthorizationStatusAuthorized)
                 [self savePhoto];
-            else [self sendAlert:@"Error" :@"App did not receive access to Photo Library. Please go to Settings -> Privacy -> Photos and allow access to our app. Thank you"];
+            else [self sendAlert:@"Error" :@"App did not receive access to Photo Library. Please go to Settings -> Privacy -> Photos and allow access to our app. Thank you":false];
         }];
         
     }
@@ -697,14 +705,14 @@
         UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil);
         NSLog(@"# Imaged saved succesfully");
         
-        [self sendAlert:@"Confirmation" :@"Photo saved successfully. Please check your gallery"];
+        [self sendAlert:@"Confirmation" :@"Photo saved successfully. Please check your gallery":false];
         
     }
     else
     {
         NSLog(@"# ERROR: Failed to capture the screen");
         
-        [self sendAlert:@"Error" :@"Error while saving the photo. Please try again"];
+        [self sendAlert:@"Error" :@"Error while saving the photo. Please try again":false];
         
     }
 }
@@ -740,7 +748,6 @@
     [FBSDKShareDialog showFromViewController:self
                                  withContent:content
                                     delegate:nil];
-    
 }
 // *********************************************************************************
 
@@ -764,60 +771,66 @@
     _mainToolbar.hidden = NO;
     _bannerView.hidden = NO;
     
-    // post on twitter
-    if ([SLComposeViewController isAvailableForServiceType:SLServiceTypeTwitter])
+    TWTRComposer *composer = [[TWTRComposer alloc] init];
+    
+    [composer setText:@"#RoadToSuccess #QuoteOfTheDay"];
+    [composer setImage:image];
+    
+    NSLog(@"Debug by Gabriel Tarpian");
+    
+    /*
+     Step 1: Check if there are logged in users
+     Step 2a: If yes => post the tweet
+     Step 2b: If no => Create a loggin session then post the tweet
+     */
+    
+    bool isUserLoggedIn = [[NSUserDefaults standardUserDefaults] boolForKey:@"TwitterLoggedIn"];
+    if(isUserLoggedIn)
     {
-        SLComposeViewController *tweet = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeTwitter];
+        // Called from a UIViewController
+        [composer showFromViewController:self completion:^(TWTRComposerResult result) {
+            if (result == TWTRComposerResultCancelled) {
+                NSLog(@"Tweet composition cancelled");
+            }
+            else
+            {
+                NSLog(@"Success with Twitter");
+                
+                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                    [self sendAlert:@"Confirmation" :@"Tweet posted successfully" :true];
+                });
+            }
+        }];
         
-        NSString *shareText = @"#QuoteOfTheDay #RoadToSuccess";
-        [tweet setInitialText:shareText];
-        [tweet addImage:image];
-        
-        [tweet setCompletionHandler:^(SLComposeViewControllerResult result)
-         {
-             
-             switch (result) {
-                 case SLComposeViewControllerResultCancelled:
-                     NSLog(@"# Twitter Post Canceled");
-                     break;
-                     
-                 case SLComposeViewControllerResultDone:
-                 {
-                     NSLog(@"# Twitter Post Sucessful");
-                     
-                     [self dismissViewControllerAnimated:YES completion:nil];
-                     
-                     NSString * msg = [[NSString alloc]init];
-                     
-                     if ([[Reachability reachabilityForInternetConnection]currentReachabilityStatus]==NotReachable)
-                     {
-                         //connection unavailable
-                         msg = @"No internet connection! Do not worry, the quote will be tweeted when your device has internet connection";
-                     }
-                     else
-                     {
-                         //connection available
-                         msg = @"Quote tweeted successfully!";
-                     }
-                     
-                     [self sendAlert:@"Confirmation" :msg];
-                     
-                     break;
-                 }
-                 default:
-                     break;
-             }
-             
-             // [self dismissViewControllerAnimated:YES completion:nil];
-         }];
-        
-        [self presentViewController:tweet animated:YES completion:nil];
     }
     else
     {
-        NSLog(@"# ERROR: Twitter app not installed");
-        
-        [self sendAlert:@"Error" :@"Error while connecting to your Twitter account. Twitter app may not be installed or your account is not linked to the app. Please solve this and try again"];
+        [[Twitter sharedInstance] logInWithCompletion:^(TWTRSession *session, NSError *error) {
+            if (session)
+            {
+                // Called from a UIViewController
+                [composer showFromViewController:self completion:^(TWTRComposerResult result) {
+                    if (result == TWTRComposerResultCancelled) {
+                        NSLog(@"Tweet composition cancelled");
+                    }
+                    else
+                    {
+                        NSLog(@"Success with Twitter");
+                        [[NSUserDefaults standardUserDefaults] setBool:true forKey:@"TwitterLoggedIn"];
+                        
+                        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                            [self sendAlert:@"Confirmation" :@"Tweet posted successfully" :true];
+                        });
+                    }
+                }];
+            }
+            else
+            {
+                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                    [self sendAlert:@"Error" :@"Failed to connect to your twitter account" :true];
+                });
+            }
+        }];
     }
 }
 // *********************************************************************************
@@ -832,7 +845,7 @@
     
     NSString *msg = [[NSString alloc] initWithFormat:@"Stay inspired and motivated towards success! But what does success means? Success is not what society think it is. Success is yours! It’s crucial to figure out what exactly success means to you. I mean literally sit your butt in a chair and think critically about it. Think about all areas of life (health, relationships, social, career, financial, spiritual). Then work on your dreams! I know you have a lot! I have too, let’s reach them together!\n\n Thank you for using this application and enjoy the journey! It is the destination! \n \n Application: Road To Success \n Version: %@ \n Author: Gabriel Tarpian", appVersion];
     
-    [self sendAlert:@"About this App" :msg];
+    [self sendAlert:@"About this App" :msg:false];
 }
 // *********************************************************************************
 
@@ -861,6 +874,7 @@
                                style:UIAlertActionStyleDefault
                                handler:^(UIAlertAction * action) {
                                    //Handle no, thanks button
+                                   [alert dismissViewControllerAnimated:YES completion:nil];
                                }];
     
     [alert addAction:okButton];
@@ -870,8 +884,8 @@
                                               blue:0.0f/255.0f
                                              alpha:1.0f]];
     
+    [self dismissViewControllerAnimated:YES completion:nil];
     [self presentViewController:alert animated:YES completion:nil];
-    
 }
 // *********************************************************************************
 
@@ -1050,8 +1064,11 @@
 
 
 // ******************************************************** SEND ALERT
--(void) sendAlert:(NSString*)alertTitle :(NSString*)alertContent
+-(void) sendAlert:(NSString*)alertTitle :(NSString*)alertContent :(bool)delay
 {
+    if(delay)
+        [NSThread sleepForTimeInterval:0.1f];
+    
     // send a confirmation alert
     UIAlertController * alert = [UIAlertController
                                  alertControllerWithTitle:alertTitle
@@ -1072,16 +1089,17 @@
                                actionWithTitle:@"I am successful"
                                style:UIAlertActionStyleDefault
                                handler:^(UIAlertAction * action) {
-                                   //Handle no, thanks button
+                                   [alert dismissViewControllerAnimated:YES completion:nil];
                                }];
     
     [alert addAction:okButton];
-    [self presentViewController:alert animated:YES completion:nil];
+    
     [alert.view setTintColor:[UIColor colorWithRed:255.0f/255.0f
                                              green:165.0f/255.0f
                                               blue:0.0f/255.0f
                                              alpha:1.0f]];
-
+    
+    [self presentViewController:alert animated:YES completion:nil];
 }
 // *********************************************************************************
 
@@ -1151,6 +1169,7 @@
                                style:UIAlertActionStyleDefault
                                handler:^(UIAlertAction * action) {
                                    //Handle okButton
+                                   [alert dismissViewControllerAnimated:YES completion:nil];
                                    [self showInitialIntro_2];
                                    
                                }];
@@ -1163,7 +1182,6 @@
                                              alpha:1.0f]];
     
     [self presentViewController:alert animated:YES completion:nil];
-    
 }
 
 // ******************************************************** SHOW INITIAL INTRO 2
@@ -1192,6 +1210,7 @@
                                style:UIAlertActionStyleDefault
                                handler:^(UIAlertAction * action) {
                                    //Handle no, thanks button
+                                   [alert dismissViewControllerAnimated:YES completion:nil];
                                    [self showInitialIntro_3];
                                }];
     
@@ -1231,7 +1250,7 @@
                                style:UIAlertActionStyleDefault
                                handler:^(UIAlertAction * action) {
                                    //Handle no, thanks button
-                                   
+                                   [alert dismissViewControllerAnimated:YES completion:nil];
                                    [self showInitialIntro_4];
                                }];
     
@@ -1271,6 +1290,7 @@
                                style:UIAlertActionStyleDefault
                                handler:^(UIAlertAction * action) {
                                    //Handle no, thanks button
+                                   [alert dismissViewControllerAnimated:YES completion:nil];
                                }];
     
     [alert addAction:okButton];
@@ -1317,4 +1337,8 @@
 }
 // *********************************************************************************
 
+// Objective C
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *,id> *)options {
+    return [[Twitter sharedInstance] application:app openURL:url options:options];
+}
 @end

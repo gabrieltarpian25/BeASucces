@@ -27,14 +27,14 @@
 @property (nonatomic, strong) IBOutlet GADBannerView  *bannerView;
 
 // bar buttons for main toolbar
-@property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnSettings;
+@property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnClock;
 @property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnSave;
 @property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnFacebook;
 @property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnTwitter;
 @property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnInfo;
 
 // bar buttons for right arrow toolbar
-@property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnArrowRight;
+@property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnSettings;
 @property (nonatomic, strong) IBOutlet UIBarButtonItem   *barBtnArrowLeft;
 
 // toolbar that contains the buttons for saving the quote, sharing it on facebook, notification time, etc

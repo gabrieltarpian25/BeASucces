@@ -11,6 +11,8 @@
 ///    Notification become independent from UIKit
 @import UserNotifications;
 
+#import <TwitterKit/TwitterKit.h>
+
 @interface AppDelegate ()
 
 @end
@@ -19,6 +21,8 @@
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    
+    [[Twitter sharedInstance] startWithConsumerKey:@"YtrTHHT5vMdPMxSsSOTCBudlp" consumerSecret:@"tkyv37MqK7WdTETWTtixvzS78Bs4qfk4Gbcfv7YCUQDnqaUu13"];
     
     // register user for notification settings
     UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
@@ -35,6 +39,11 @@
     // Override point for customization after application launch.
     return YES;
     
+}
+
+// Used for Twitter log in
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *,id> *)options {
+    return [[Twitter sharedInstance] application:app openURL:url options:options];
 }
 
 
