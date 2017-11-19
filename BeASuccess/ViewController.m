@@ -14,7 +14,6 @@
 
 // imported for sharing on facebook
 #import <Social/Social.h>
-
 #import <Photos/Photos.h>
 
 // used for random number generator
@@ -34,12 +33,18 @@
 // import for twitter
 #import <TwitterKit/TwitterKit.h>
 
+#ifdef RELEASE
+    # define NSLog(...) //remove loggin in production
+#else
+    #define NSLog(FORMAT, ...) printf("%s\n", [[NSString stringWithFormat:FORMAT, ##__VA_ARGS__] UTF8String])
+#endif
+
 @interface ViewController ()
 
 @end
 
 // format NSLog to not display timestamp
-#define NSLog(FORMAT, ...) printf("%s\n", [[NSString stringWithFormat:FORMAT, ##__VA_ARGS__] UTF8String]);
+
 
 @implementation ViewController
 
@@ -56,7 +61,6 @@
     {
         int adviceId = [self calculateAdviceID];
         NSString *advice = [[DBManager getSharedInstance] getAdviceByID:adviceId];
-        NSLog(@"# Current advice text is : %@",advice);
         
         [self sendAlert:@"Hey, successful, it's me! My advice for you is ..." :advice:false];
     }
@@ -74,6 +78,26 @@
     
     if(boSecondTime == NO)
     {
+        // request access to photo library
+        [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+            switch (status) {
+                case PHAuthorizationStatusAuthorized:
+                    break;
+                case PHAuthorizationStatusRestricted:
+                    break;
+                case PHAuthorizationStatusDenied:
+                    break;
+                default:
+                    break;
+            }
+        }];
+        
+        // register user for notification settings
+        UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+        [center requestAuthorizationWithOptions:(UNAuthorizationOptionBadge | UNAuthorizationOptionSound | UNAuthorizationOptionAlert)
+                              completionHandler:^(BOOL granted, NSError * _Nullable error) {
+                              }];
+        
         // set current day as 0
         [[NSUserDefaults standardUserDefaults] setInteger:0 forKey:@"CurrentDay"];
         
@@ -105,13 +129,15 @@
             [self initializeQuotesArray];
             
             [hud hideAnimated:YES];
+            
+            [NSThread sleepForTimeInterval:4.0f];
             [self displayQuote];
             [self showInitialIntro_1];
             
             [[NSUserDefaults standardUserDefaults] setBool:TRUE forKey:@"InitialAdviceDisplayed"];
         });
-        
-    } else [self displayQuote];
+    }
+    else [self displayQuote];
 }
 
 -(void) displayQuote
@@ -156,7 +182,6 @@
     
     if(quote == nil || author == nil)
     {
-        NSLog(@"# ERROR (ViewController): Unable to retreive quote and author from database");
         [self sendAlert:@"Error" :@"Failed to retrieve quote from database. Please reinstall the application." :false];
     }
     
@@ -177,7 +202,6 @@
                                                    green:165.0f/255.0f
                                                     blue:0.0f/255.0f
                                                    alpha:0.0f];
-    
     
     // Assign quote to label
     _textQuote.text = finalString;
@@ -210,7 +234,6 @@
     // create positions for copyright text
     int textPosX = width - width_needed;
     int textPosY = height - height_needed;
-    NSLog(@"Text posX = %d, posY = %d",textPosX, textPosY);
     _textAuthor.frame = CGRectMake(textPosX, textPosY, width_needed, height_needed);
     
     // create the banner
@@ -359,11 +382,22 @@
 
 -(void) vCreateToolbars:(int)width
 {
-    NSLog(@"width is %d",width);
+    // check if device is iPhone X and apply the offset
+    int iPhoneXOffset = 0;
+    if([[UIDevice currentDevice]userInterfaceIdiom]==UIUserInterfaceIdiomPhone)
+    {
+        switch ((int)[[UIScreen mainScreen] nativeBounds].size.height) {
+            case 2436:
+                iPhoneXOffset = 30;
+                break;
+            default:
+                break;
+        }
+    }
     
     // create the intro toolbar
     _rightArrowToolbar = [[UIToolbar alloc]init];
-    _rightArrowToolbar.frame = CGRectMake(0, 0, width, 40);
+    _rightArrowToolbar.frame = CGRectMake(0, 0+iPhoneXOffset, width, 40);
     
     // ************* Settings button
     UIImage *imgSettings = [UIImage imageNamed:@"Settings_r.png"];
@@ -371,7 +405,7 @@
     
     UIButton *btnSettings = [UIButton buttonWithType:UIButtonTypeCustom];
     [btnSettings addTarget:self action:@selector(showMainToolbar:) forControlEvents:UIControlEventTouchUpInside];
-    btnSettings.bounds = CGRectMake( 0, 5, 25, 25 );
+    btnSettings.bounds = CGRectMake( 0, 5 + iPhoneXOffset, 25, 25 );
     [btnSettings setImage:imgSettings forState:UIControlStateNormal];
     [btnSettings setShowsTouchWhenHighlighted:TRUE];
     _barBtnSettings = [[UIBarButtonItem alloc] initWithCustomView:btnSettings];
@@ -383,7 +417,7 @@
     
     // create the toolbar
     _mainToolbar = [[UIToolbar alloc] init];
-    _mainToolbar.frame = CGRectMake(-width, 0, width, 40);
+    _mainToolbar.frame = CGRectMake(-width, 0 + iPhoneXOffset, width, 40);
     
     // ************* Left arrow button
     UIImage *imgArrowLeft = [UIImage imageNamed:@"LeftArrow_r.png"];
@@ -401,10 +435,11 @@
     // UIImage *imgSettings = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
     
     UIButton *btnClock = [UIButton buttonWithType:UIButtonTypeCustom];
+    [btnClock setShowsTouchWhenHighlighted:TRUE];
     [btnClock addTarget:self action:@selector(changeNotificationTime:) forControlEvents:UIControlEventTouchUpInside];
     // btnClock.bounds = CGRectMake( btnClock.bounds.origin.x, btnClock.bounds.origin.y, 35, 35 );
     [btnClock setImage:imgClock forState:UIControlStateNormal];
-    [btnClock setShowsTouchWhenHighlighted:TRUE];
+    
     _barBtnClock = [[UIBarButtonItem alloc] initWithCustomView:btnClock];
     
     // ************ Save button
@@ -480,7 +515,28 @@
 // ******************************************************** CHANGE NOTIFICATION TIME BUTTON PRESSED
 -(IBAction)changeNotificationTime:(id)sender
 {
-    NSLog(@"# Settings button is pressed...");
+    // hide animated main toolbar by setting its x position to 0
+    // create the animation
+    [UIView animateWithDuration:0.6
+                     animations:^(void)
+     {
+         // hide right arrow
+         CGRect toolbarFrame = self.mainToolbar.frame;
+         toolbarFrame.origin.y = 0;
+         self.mainToolbar.frame = toolbarFrame;
+     }
+                     completion:^(BOOL finished)
+     {
+     }];
+    
+    // check if user has allowed notification access
+    UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+    [center getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
+        if (settings.authorizationStatus != UNAuthorizationStatusAuthorized)
+        {
+            [self sendAlert:@"Information" :@"You will not receive notifications at the moment. Please allow our app to send you notifications by navigating to Settings -> Notifications -> ToSucces.\n\n Thank you" :false];
+        }
+    }];
     
     int display_width = self.view.frame.size.width;
     int display_height = self.view.frame.size.height;
@@ -543,7 +599,6 @@
 // ******************************************************** NOTIFICATION HOUR CHANGED
 -(void) notificationHourChanged
 {
-    NSLog(@"# Notification time is changing...");
     int currentHour = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"Hour"];
     int currentMinute  = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"Minute"];
     
@@ -556,12 +611,37 @@
     
     if(currentHour != nextHour || currentMinute != nextMinute)
     {
-        NSLog(@"# Notification time changed from %02d:%02d to %02d:%02d", currentHour, currentMinute,nextHour,nextMinute);
         [self createPushNotification:nextHour m:nextMinute boAlert:YES];
     }
     
     _toolbarNotification.hidden = YES;
     _datePickerNotification.hidden = YES;
+    
+    // check if device is iPhone X and apply the offset
+    int iPhoneXOffset = 0;
+    if([[UIDevice currentDevice]userInterfaceIdiom]==UIUserInterfaceIdiomPhone)
+    {
+        switch ((int)[[UIScreen mainScreen] nativeBounds].size.height) {
+            case 2436:
+                iPhoneXOffset = 30;
+                break;
+            default:
+                break;
+        }
+    }
+    
+    // unhide animated main toolbar by setting its Y position to 0
+    [UIView animateWithDuration:0.6
+                     animations:^(void)
+     {
+         // hide right arrow
+         CGRect toolbarFrame = self.mainToolbar.frame;
+         toolbarFrame.origin.y = 0 + iPhoneXOffset;
+         self.mainToolbar.frame = toolbarFrame;
+     }
+                     completion:^(BOOL finished)
+     {
+     }];
 }
 // *********************************************************************************
 
@@ -603,9 +683,6 @@
     [center addNotificationRequest:request withCompletionHandler:^(NSError * _Nullable error) {
         if (!error)
         {
-            
-            NSLog(@"# NotificationRequest succeeded");
-            
             // store the hour and the minute
             [[NSUserDefaults standardUserDefaults]setInteger:hour forKey:@"Hour"];
             [[NSUserDefaults standardUserDefaults]setInteger:minute forKey:@"Minute"];
@@ -615,16 +692,12 @@
             {
                 NSString *message = [[NSString alloc] initWithFormat:@"Notification time changed to %02d:%02d",hour,minute];
                 
-                [self sendAlert:@"Confirmation" : message: false];
+                [self sendAlert:@"Success" : message: false];
             }
-            
-            NSLog(@"Notification time changed to %02d:%02d",hour,minute);
         }
         else
         {
-            NSLog(@"# ERROR: NotificationRequest failed");
-            
-            [self sendAlert:@"Confirmation" :@"Failed to change the notification time. Please try again":false];
+            [self sendAlert:@"Error" :@"Failed to change the notification time. Please try again":false];
         }
     }];
     
@@ -634,53 +707,20 @@
 // ******************************************************** SAVE BUTTON PRESSED
 -(IBAction)saveButtonPressed:(id)sender
 {
-    
-    NSLog(@"# Save button is pressed");
-    NSLog(@"# Checking for app permission to access photo library ...");
-    
-    // check if user received rights for using the photos library
-    PHAuthorizationStatus status = [PHPhotoLibrary authorizationStatus];
-    
-    
-    if (status == PHAuthorizationStatusAuthorized)
+    if( [self hasPhotoLibraryAcess] )
         [self savePhoto];
-    else if (status == PHAuthorizationStatusDenied)
-    {
-        // Access has been denied.
-        [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-            
-            if (status == PHAuthorizationStatusAuthorized)
-                [self savePhoto];
-            else
-            {
-                NSLog(@"# ERROR: Authorization status - Denied");
-                [self sendAlert:@"Error" :@"App did not receive access to Photo Library. Please go to Settings -> Privacy -> Photos and allow access to our app. Thank you":false];
-            }
-        }];
-    }
-    else if (status == PHAuthorizationStatusNotDetermined)
-    {
-        // Access has not been determined.
-        [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-            
-            if (status == PHAuthorizationStatusAuthorized)
-                [self savePhoto];
-            else [self sendAlert:@"Error" :@"App did not receive access to Photo Library":false];
-        }];
-    }
-    else if (status == PHAuthorizationStatusRestricted) {
-        
-        // Restricted access - normally won't happen.
-        [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-            
-            if (status == PHAuthorizationStatusAuthorized)
-                [self savePhoto];
-            else [self sendAlert:@"Error" :@"App did not receive access to Photo Library. Please go to Settings -> Privacy -> Photos and allow access to our app. Thank you":false];
-        }];
-        
-    }
+    else [self sendAlert:@"Error" :@"App did not receive access to Photo Library. Please go to Settings -> Privacy -> Photos and allow access to our app. Thank you":false];
 }
 // *********************************************************************************
+
+-(BOOL) hasPhotoLibraryAcess
+{
+    // check if user received rights for using the photos library
+    PHAuthorizationStatus status = [PHPhotoLibrary authorizationStatus];
+    if (status == PHAuthorizationStatusAuthorized)
+        return true;
+    else return false;
+}
 
 -(void) savePhoto
 {
@@ -703,16 +743,12 @@
     {
         //[imageData writeToFile:@"screenshot.png" atomically:YES];
         UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil);
-        NSLog(@"# Imaged saved succesfully");
-        
-        [self sendAlert:@"Confirmation" :@"Photo saved successfully. Please check your gallery":false];
+        [self sendAlert:@"Success" :@"Photo saved. Please check your gallery":false];
         
     }
     else
     {
-        NSLog(@"# ERROR: Failed to capture the screen");
-        
-        [self sendAlert:@"Error" :@"Error while saving the photo. Please try again":false];
+        [self sendAlert:@"Error" :@"Failed to save the photo. Please try again":false];
         
     }
 }
@@ -720,7 +756,13 @@
 // ******************************************************** FACEBOOK BUTTON PRESSED
 -(IBAction)facebookButtonPressed:(id)sender
 {
-    NSLog(@"# Facebook button is pressed...");
+    // check if facebook app is installed
+    BOOL isInstalled = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"fb://"]];
+    if (!isInstalled)
+    {
+        [self sendAlert:@"Error" :@"You need to have Facebook app installed in order to share this quote":false];
+        return;
+    }
     
     // get current quote screenshot
     if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
@@ -754,7 +796,13 @@
 // ******************************************************** TWITTER BUTTON PRESSED
 -(IBAction)twitterButtonPressed:(id)sender
 {
-    NSLog(@"# Twitter button is pressed...");
+    // check if twitter app is installed
+    BOOL isInstalled = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://"]];
+    if (!isInstalled)
+    {
+        [self sendAlert:@"Error" :@"You need to have Twitter app installed in order to share this quote":false];
+        return;
+    }
     
     // get current quote screenshot
     if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
@@ -776,8 +824,6 @@
     [composer setText:@"#RoadToSuccess #QuoteOfTheDay"];
     [composer setImage:image];
     
-    NSLog(@"Debug by Gabriel Tarpian");
-    
     /*
      Step 1: Check if there are logged in users
      Step 2a: If yes => post the tweet
@@ -790,14 +836,11 @@
         // Called from a UIViewController
         [composer showFromViewController:self completion:^(TWTRComposerResult result) {
             if (result == TWTRComposerResultCancelled) {
-                NSLog(@"Tweet composition cancelled");
             }
             else
             {
-                NSLog(@"Success with Twitter");
-                
                 dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-                    [self sendAlert:@"Confirmation" :@"Tweet posted successfully" :true];
+                    [self sendAlert:@"Success" :@"Tweet posted" :true];
                 });
             }
         }];
@@ -811,15 +854,13 @@
                 // Called from a UIViewController
                 [composer showFromViewController:self completion:^(TWTRComposerResult result) {
                     if (result == TWTRComposerResultCancelled) {
-                        NSLog(@"Tweet composition cancelled");
                     }
                     else
                     {
-                        NSLog(@"Success with Twitter");
                         [[NSUserDefaults standardUserDefaults] setBool:true forKey:@"TwitterLoggedIn"];
                         
                         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-                            [self sendAlert:@"Confirmation" :@"Tweet posted successfully" :true];
+                            [self sendAlert:@"Success" :@"Tweet posted" :true];
                         });
                     }
                 }];
@@ -841,11 +882,10 @@
 {
     
     NSString *appVersion = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
-    NSLog(@"# Current App version = %@",appVersion);
     
     NSString *msg = [[NSString alloc] initWithFormat:@"Stay inspired and motivated towards success! But what does success means? Success is not what society think it is. Success is yours! It’s crucial to figure out what exactly success means to you. I mean literally sit your butt in a chair and think critically about it. Think about all areas of life (health, relationships, social, career, financial, spiritual). Then work on your dreams! I know you have a lot! I have too, let’s reach them together!\n\n Thank you for using this application and enjoy the journey! It is the destination! \n \n Application: Road To Success \n Version: %@ \n Author: Gabriel Tarpian", appVersion];
     
-    [self sendAlert:@"About this App" :msg:false];
+    [self sendAlert:@"About RoadToSuccess" :msg:false];
 }
 // *********************************************************************************
 
@@ -892,9 +932,7 @@
 // ******************************************************** INITIALIZE QUOTES ARRAY
 -(void) initializeQuotesArray
 {
-    NSLog(@"# Initializing quotes array...");
     int number_of_quotes = [[DBManager getSharedInstance] getNumberOfQuotes];
-    NSLog(@"# Number of quotes stored in database = %d", number_of_quotes);
     
     NSMutableArray *quotes = [NSMutableArray array];
     for (NSInteger i = 1; i <= number_of_quotes; i++)
@@ -902,12 +940,6 @@
     
     // store them in user defaults
     [[NSUserDefaults standardUserDefaults] setObject:quotes forKey:@"AvailableQuotes"];
-    
-    /*
-     NSLog(@"#### Quotes");
-     for (NSNumber *item in quotes)
-     NSLog(@"%@",item);
-     */
 }
 // *********************************************************************************
 
@@ -915,21 +947,13 @@
 // ******************************************************** INITIALIZE ADVICES ARRAY
 -(void) initializeAdvicesArray
 {
-    NSLog(@"# Initializing advices array");
     int number_of_advices = [[DBManager getSharedInstance] getNumberOfAdvices];
-    NSLog(@"# Number of advices stored in database = %d", number_of_advices);
     
     NSMutableArray *advices = [NSMutableArray array];
     for (NSInteger i = 1; i <= number_of_advices; i++)
         [advices addObject:[NSNumber numberWithInteger:i]];
     
     [[NSUserDefaults standardUserDefaults] setObject:advices forKey:@"AvailableAdvices"];
-    
-    /*
-     NSLog(@"#### Advices");
-     for (NSNumber *item in advices)
-     NSLog(@"%@",item);
-     */
 }
 // *********************************************************************************
 
@@ -937,7 +961,6 @@
 // ******************************************************** CALCULATE ADVICE ID
 -(int) calculateAdviceID
 {
-    NSLog(@"# Calculating Advice ID...");
     NSArray *advicesImutable = [[NSUserDefaults standardUserDefaults] objectForKey:@"AvailableAdvices"];
     NSMutableArray *advices = [advicesImutable mutableCopy];
     
@@ -948,8 +971,6 @@
     // get the actual advice id
     int adviceID = [[advices objectAtIndex:advice_index] intValue];
     
-    NSLog(@"# Number of advices = %d",number_of_advices);
-    NSLog(@"# Advice index = %d",advice_index);
     NSLog(@"# Advice ID = %d",adviceID);
     
     // remove the advice id
@@ -963,8 +984,6 @@
         printf("%d ",[item intValue]);
     printf("]\n");
     
-    NSLog(@"# Number of advices after removal = %d",number_of_advices_after_removal);
-    
     if (number_of_advices_after_removal == 0)
         [self initializeAdvicesArray];
     else [[NSUserDefaults standardUserDefaults] setObject:advices forKey:@"AvailableAdvices"];
@@ -977,8 +996,6 @@
 // ******************************************************** CALCULATE QUOTE ID
 -(int) calculateQuoteID
 {
-    NSLog(@"# Calculating Quote ID...");
-    
     NSDateComponents *components = [[NSCalendar currentCalendar] components:NSCalendarUnitDay | NSCalendarUnitMonth | NSCalendarUnitYear | NSCalendarUnitHour | NSCalendarUnitMinute fromDate:[NSDate date]];
     
     // store the current calendar day, hour, min
@@ -1003,7 +1020,6 @@
     
     int return_value = current_quote_id;
     
-    
     // check if quote needs to be changed
     bool change_quote = FALSE;
     
@@ -1018,7 +1034,6 @@
     
     if(change_quote == TRUE)
     {
-        NSLog(@"# Changing the quote ...");
         
         NSArray *quotesImutable = [[NSUserDefaults standardUserDefaults] objectForKey:@"AvailableQuotes"];
         NSMutableArray *quotes = [quotesImutable mutableCopy];
@@ -1030,8 +1045,6 @@
         // get the actual quote id
         int quoteID = [[quotes objectAtIndex:quote_index] intValue];
         
-        NSLog(@"# Number of quotes = %d",number_of_quotes);
-        NSLog(@"# Quote index = %d",quote_index);
         NSLog(@"# Next quote ID = %d",quoteID);
         
         // remove the quote id
@@ -1106,7 +1119,6 @@
 // ******************************************************** CALCULATE FONT SIZE
 -(int) calculateFontSize:(NSString*) quote
 {
-    NSLog(@"Calculating font size ...");
     int font_size = 30;
     BOOL result = FALSE;
     
@@ -1131,13 +1143,8 @@
         else
         {
             result = TRUE;
-            NSLog(@"Height needed by text is %f",height_needed_by_text);
         }
     }
-    
-    NSLog(@"Font size is %d",font_size);
-    NSLog(@"Text quote height is %f",_textQuote.frame.size.height);
-    NSLog(@"Aux text quote height is %f",aux_text_view.frame.size.height);
     
     return font_size;
 }
@@ -1306,10 +1313,34 @@
 // ******************************************************** CANCEL NOTIFICATION HOUR
 -(void) cancelNotificationHour
 {
-    NSLog(@"# Notification hour canceled");
-    
     _toolbarNotification.hidden = YES;
     _datePickerNotification.hidden = YES;
+    
+    // check if device is iPhone X and apply the offset
+    int iPhoneXOffset = 0;
+    if([[UIDevice currentDevice]userInterfaceIdiom]==UIUserInterfaceIdiomPhone)
+    {
+        switch ((int)[[UIScreen mainScreen] nativeBounds].size.height) {
+            case 2436:
+                iPhoneXOffset = 30;
+                break;
+            default:
+                break;
+        }
+    }
+    
+    // unhide animated main toolbar by setting its Y position to 0
+    [UIView animateWithDuration:0.6
+                     animations:^(void)
+     {
+         // hide right arrow
+         CGRect toolbarFrame = self.mainToolbar.frame;
+         toolbarFrame.origin.y = 0 + iPhoneXOffset;
+         self.mainToolbar.frame = toolbarFrame;
+     }
+                     completion:^(BOOL finished)
+     {
+     }];
 }
 // *********************************************************************************
 
@@ -1341,4 +1372,5 @@
 - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *,id> *)options {
     return [[Twitter sharedInstance] application:app openURL:url options:options];
 }
+
 @end

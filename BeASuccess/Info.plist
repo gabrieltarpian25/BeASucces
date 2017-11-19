@@ -40,6 +40,7 @@
 		<string>fbauth2</string>
 		<string>fbapi</string>
 		<string>fbshareextension</string>
+		<string>fb</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>

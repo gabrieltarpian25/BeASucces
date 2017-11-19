@@ -199,7 +199,6 @@ static sqlite3_stmt *statement = nil;
 
 -(NSString*) getAdviceByID:(int)adviceId
 {
-    
     // open the database then execute the statement
     if( [self openDatabase] )
     {

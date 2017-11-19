@@ -24,16 +24,6 @@
     
     [[Twitter sharedInstance] startWithConsumerKey:@"YtrTHHT5vMdPMxSsSOTCBudlp" consumerSecret:@"tkyv37MqK7WdTETWTtixvzS78Bs4qfk4Gbcfv7YCUQDnqaUu13"];
     
-    // register user for notification settings
-    UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
-    [center requestAuthorizationWithOptions:(UNAuthorizationOptionBadge | UNAuthorizationOptionSound | UNAuthorizationOptionAlert)
-                          completionHandler:^(BOOL granted, NSError * _Nullable error) {
-                              if (!error) {
-                                  NSLog(@"request authorization succeeded!");
-                                  // [self showAlert];
-                              }
-                          }];
-    
     [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
     
     // Override point for customization after application launch.
