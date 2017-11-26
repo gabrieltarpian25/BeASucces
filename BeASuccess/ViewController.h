@@ -46,6 +46,18 @@
 @property (nonatomic, strong) IBOutlet UIDatePicker      *datePickerNotification;
 @property (nonatomic, strong) IBOutlet UIToolbar         *toolbarNotification;
 
+// buttons used in toolbar
+@property (nonatomic, strong) UIButton *btnSave;
+@property (nonatomic, strong) UIButton *btnClock;
+@property (nonatomic, strong) UIButton *btnFacebook;
+@property (nonatomic, strong) UIButton *btnTwitter;
+@property (nonatomic, strong) UIButton *btnInfo;
+
+// used for creating the screenshot image
+@property (nonatomic, strong) NSMutableString *strQuoteAndAuthor;
+@property  int fontSize;
+@property (nonatomic, strong) UIImageView *imageHolder;
+
 @property(strong,nonatomic)LoadingViewController *loadingViewController;
 
 @end

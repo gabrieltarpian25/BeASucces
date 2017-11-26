@@ -71,7 +71,8 @@
     // Do any additional setup after loading the view, typically from a nib.
     
     // set icon badge to 0
-    [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
+    // It will be set when a quote needs to be calculated
+    // [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
     
     // Get if this is the first time of running the app
     BOOL boSecondTime = [[NSUserDefaults standardUserDefaults] boolForKey:@"SecondTime"];
@@ -108,7 +109,7 @@
         
         // Create wallpaper
         UIImageView *imageHolder = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, width, height)];
-        UIImage *image = [UIImage imageNamed:@"Success"];
+        UIImage *image = [UIImage imageNamed:@"InitialImage"];
         imageHolder.image = image;
         
         // create black overlay
@@ -130,7 +131,6 @@
             
             [hud hideAnimated:YES];
             
-            [NSThread sleepForTimeInterval:4.0f];
             [self displayQuote];
             [self showInitialIntro_1];
             
@@ -159,15 +159,15 @@
     int height = screenRect.size.height;
     
     // Create wallpaper
-    UIImageView *imageHolder = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, width, height)];
+    _imageHolder = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, width, height)];
     UIImage *image = [UIImage imageNamed:imageName];
-    imageHolder.image = image;
+    _imageHolder.image = image;
     
     // create black overlay
     UIView *overlay = [[UIView alloc] initWithFrame:CGRectMake(0, 0, width, height)];
     [overlay setBackgroundColor:[UIColor colorWithRed:0 green:0 blue:0 alpha:0.7]];
-    [imageHolder addSubview:overlay];
-    [self.view addSubview:imageHolder];
+    [_imageHolder addSubview:overlay];
+    [self.view addSubview:_imageHolder];
     
     // creating the quote text label
     int labelPosX = 5;
@@ -186,9 +186,11 @@
     }
     
     NSString *finalString = [NSString stringWithFormat:@"%@\n\n%@", quote, author];
+    _strQuoteAndAuthor = [[NSMutableString alloc] initWithString:finalString];
     
     // create the font
     int font_size = [self calculateFontSize:finalString];
+    _fontSize = font_size;
     UIFont *textViewfont = [UIFont fontWithName:@"Noteworthy-Bold" size:font_size];
     
     // text color
@@ -313,6 +315,7 @@
      }
                      completion:^(BOOL finished)
      {
+         
      }];
 }
 
@@ -405,7 +408,7 @@
     
     UIButton *btnSettings = [UIButton buttonWithType:UIButtonTypeCustom];
     [btnSettings addTarget:self action:@selector(showMainToolbar:) forControlEvents:UIControlEventTouchUpInside];
-    btnSettings.bounds = CGRectMake( 0, 5 + iPhoneXOffset, 25, 25 );
+    // btnSettings.bounds = CGRectMake( 0, 5 + iPhoneXOffset, 25, 25 );
     [btnSettings setImage:imgSettings forState:UIControlStateNormal];
     [btnSettings setShowsTouchWhenHighlighted:TRUE];
     _barBtnSettings = [[UIBarButtonItem alloc] initWithCustomView:btnSettings];
@@ -432,59 +435,65 @@
     
     // ************* Clock button
     UIImage *imgClock = [UIImage imageNamed:@"Clock_r.png"];
+    UIImage *imgClockSelected = [UIImage imageNamed:@"Clock_r_selected.png"];
     // UIImage *imgSettings = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
     
-    UIButton *btnClock = [UIButton buttonWithType:UIButtonTypeCustom];
-    [btnClock setShowsTouchWhenHighlighted:TRUE];
-    [btnClock addTarget:self action:@selector(changeNotificationTime:) forControlEvents:UIControlEventTouchUpInside];
+    _btnClock = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_btnClock addTarget:self action:@selector(changeNotificationTime:) forControlEvents:UIControlEventTouchUpInside];
     // btnClock.bounds = CGRectMake( btnClock.bounds.origin.x, btnClock.bounds.origin.y, 35, 35 );
-    [btnClock setImage:imgClock forState:UIControlStateNormal];
+    [_btnClock setImage:imgClock forState:UIControlStateNormal];
+    [_btnClock setImage:imgClockSelected forState:UIControlStateDisabled];
     
-    _barBtnClock = [[UIBarButtonItem alloc] initWithCustomView:btnClock];
+    _barBtnClock = [[UIBarButtonItem alloc] initWithCustomView:_btnClock];
     
     // ************ Save button
     UIImage *imgSave = [UIImage imageNamed:@"Save_r.png"];
+    UIImage *imgSaveSelected = [UIImage imageNamed:@"Save_r_selected.png"];
     // UIImage *imgSave = [self imageWithImage:aux convertToSize:CGSizeMake(30, 30)];
     
-    UIButton *btnSave = [UIButton buttonWithType:UIButtonTypeCustom];
-    [btnSave addTarget:self action:@selector(saveButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    _btnSave = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_btnSave addTarget:self action:@selector(saveButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
     // btnSave.bounds = CGRectMake( btnSave.bounds.origin.x, btnSave.bounds.origin.y, 40, 40 );
-    [btnSave setImage:imgSave forState:UIControlStateNormal];
-    [btnSave setShowsTouchWhenHighlighted:TRUE];
-    _barBtnSave = [[UIBarButtonItem alloc] initWithCustomView:btnSave];
+    [_btnSave setImage:imgSave forState:UIControlStateNormal];
+    [_btnSave setImage:imgSaveSelected forState:UIControlStateDisabled];
+    _barBtnSave = [[UIBarButtonItem alloc] initWithCustomView:_btnSave];
     
     // ************ Facebook button
     UIImage *imgFacebook = [UIImage imageNamed:@"Facebook_r.png"];
+    UIImage *imgFacebookSelected = [UIImage imageNamed:@"Facebook_r_selected.png"];
     // UIImage *imgFacebook = [self imageWithImage:aux convertToSize:CGSizeMake(40, 40)];
     
-    UIButton *btnFacebook = [UIButton buttonWithType:UIButtonTypeCustom];
-    [btnFacebook addTarget:self action:@selector(facebookButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    _btnFacebook = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_btnFacebook addTarget:self action:@selector(facebookButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
     // btnFacebook.bounds = CGRectMake( 200, 5, 32, 32 );
-    [btnFacebook setImage:imgFacebook forState:UIControlStateNormal];
-    [btnFacebook setShowsTouchWhenHighlighted:TRUE];
-    _barBtnFacebook = [[UIBarButtonItem alloc] initWithCustomView:btnFacebook];
+    [_btnFacebook setImage:imgFacebook forState:UIControlStateNormal];
+    [_btnFacebook setImage:imgFacebookSelected forState:UIControlStateDisabled];
+    
+    _barBtnFacebook = [[UIBarButtonItem alloc] initWithCustomView:_btnFacebook];
     
     // ************ Twitter button
     UIImage *imgTwitter = [UIImage imageNamed:@"Twitter_r.png"];
+    UIImage *imgTwitterSelected = [UIImage imageNamed:@"Twitter_r_selected.png"];
     // UIImage *imgTwitter = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
     
-    UIButton *btnTwitter = [UIButton buttonWithType:UIButtonTypeCustom];
-    [btnTwitter addTarget:self action:@selector(twitterButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    _btnTwitter = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_btnTwitter addTarget:self action:@selector(twitterButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
     // btnTwitter.bounds = CGRectMake( 300, 5, 27, 27 );
-    [btnTwitter setImage:imgTwitter forState:UIControlStateNormal];
-    [btnTwitter setShowsTouchWhenHighlighted:TRUE];
-    _barBtnTwitter = [[UIBarButtonItem alloc] initWithCustomView:btnTwitter];
+    [_btnTwitter setImage:imgTwitter forState:UIControlStateNormal];
+    [_btnTwitter setImage:imgTwitterSelected forState:UIControlStateDisabled];
+    _barBtnTwitter = [[UIBarButtonItem alloc] initWithCustomView:_btnTwitter];
     
     // ************ Info button
     UIImage *imgInfo = [UIImage imageNamed:@"Info_r"];
+    UIImage *imgInfoSelected = [UIImage imageNamed:@"Info_r_selected"];
     // UIImage *imgInfo = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
     
-    UIButton *btnInfo = [UIButton buttonWithType:UIButtonTypeCustom];
-    [btnInfo addTarget:self action:@selector(infoButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    _btnInfo = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_btnInfo addTarget:self action:@selector(infoButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
     // btnInfo.bounds = CGRectMake( 300, 5, 27, 27 );
-    [btnInfo setImage:imgInfo forState:UIControlStateNormal];
-    [btnInfo setShowsTouchWhenHighlighted:TRUE];
-    _barBtnInfo = [[UIBarButtonItem alloc] initWithCustomView:btnInfo];
+    [_btnInfo setImage:imgInfo forState:UIControlStateNormal];
+    [_btnInfo setImage:imgInfoSelected forState:UIControlStateDisabled];
+    _barBtnInfo = [[UIBarButtonItem alloc] initWithCustomView:_btnInfo];
     
     // make visible items on the toolbar
     UIBarButtonItem *flexibleSpace2 = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
@@ -515,6 +524,8 @@
 // ******************************************************** CHANGE NOTIFICATION TIME BUTTON PRESSED
 -(IBAction)changeNotificationTime:(id)sender
 {
+    _btnClock.enabled = FALSE;
+    
     // hide animated main toolbar by setting its x position to 0
     // create the animation
     [UIView animateWithDuration:0.6
@@ -599,6 +610,8 @@
 // ******************************************************** NOTIFICATION HOUR CHANGED
 -(void) notificationHourChanged
 {
+    _btnClock.enabled = NO;
+    
     int currentHour = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"Hour"];
     int currentMinute  = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"Minute"];
     
@@ -609,39 +622,48 @@
     int nextHour = (int) [components hour];
     int nextMinute = (int) [components minute];
     
+    bool hide = YES;
     if(currentHour != nextHour || currentMinute != nextMinute)
     {
         [self createPushNotification:nextHour m:nextMinute boAlert:YES];
     }
-    
-    _toolbarNotification.hidden = YES;
-    _datePickerNotification.hidden = YES;
-    
-    // check if device is iPhone X and apply the offset
-    int iPhoneXOffset = 0;
-    if([[UIDevice currentDevice]userInterfaceIdiom]==UIUserInterfaceIdiomPhone)
+    else
     {
-        switch ((int)[[UIScreen mainScreen] nativeBounds].size.height) {
-            case 2436:
-                iPhoneXOffset = 30;
-                break;
-            default:
-                break;
-        }
+        [self sendAlert:@"Info" :@"The requested notification time is the same with the current notification time " :false];
+        hide = NO;
     }
     
-    // unhide animated main toolbar by setting its Y position to 0
-    [UIView animateWithDuration:0.6
-                     animations:^(void)
-     {
-         // hide right arrow
-         CGRect toolbarFrame = self.mainToolbar.frame;
-         toolbarFrame.origin.y = 0 + iPhoneXOffset;
-         self.mainToolbar.frame = toolbarFrame;
-     }
-                     completion:^(BOOL finished)
-     {
-     }];
+    if( hide )
+    {
+        _toolbarNotification.hidden = YES;
+        _datePickerNotification.hidden = YES;
+        
+        // check if device is iPhone X and apply the offset
+        int iPhoneXOffset = 0;
+        if([[UIDevice currentDevice]userInterfaceIdiom]==UIUserInterfaceIdiomPhone)
+        {
+            switch ((int)[[UIScreen mainScreen] nativeBounds].size.height) {
+                case 2436:
+                    iPhoneXOffset = 30;
+                    break;
+                default:
+                    break;
+            }
+        }
+        
+        // unhide animated main toolbar by setting its Y position to 0
+        [UIView animateWithDuration:0.6
+                         animations:^(void)
+         {
+             // hide right arrow
+             CGRect toolbarFrame = self.mainToolbar.frame;
+             toolbarFrame.origin.y = 0 + iPhoneXOffset;
+             self.mainToolbar.frame = toolbarFrame;
+         }
+                         completion:^(BOOL finished)
+         {
+         }];
+    }
 }
 // *********************************************************************************
 
@@ -707,6 +729,7 @@
 // ******************************************************** SAVE BUTTON PRESSED
 -(IBAction)saveButtonPressed:(id)sender
 {
+    _btnSave.enabled = FALSE;
     if( [self hasPhotoLibraryAcess] )
         [self savePhoto];
     else [self sendAlert:@"Error" :@"App did not receive access to Photo Library. Please go to Settings -> Privacy -> Photos and allow access to our app. Thank you":false];
@@ -724,19 +747,7 @@
 
 -(void) savePhoto
 {
-    if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
-        UIGraphicsBeginImageContextWithOptions(self.view.bounds.size, NO, [UIScreen mainScreen].scale);
-    } else {
-        UIGraphicsBeginImageContext(self.view.bounds.size);
-    }
-    
-    _mainToolbar.hidden = YES;
-    _bannerView.hidden = YES;
-    [self.view.layer renderInContext:UIGraphicsGetCurrentContext()];
-    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    _mainToolbar.hidden = NO;
-    _bannerView.hidden = NO;
+    UIImage *image = [self takeScreenshot];
     
     NSData *imageData = UIImagePNGRepresentation(image);
     if (imageData)
@@ -756,6 +767,8 @@
 // ******************************************************** FACEBOOK BUTTON PRESSED
 -(IBAction)facebookButtonPressed:(id)sender
 {
+    _btnFacebook.enabled = NO;
+    
     // check if facebook app is installed
     BOOL isInstalled = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"fb://"]];
     if (!isInstalled)
@@ -764,20 +777,7 @@
         return;
     }
     
-    // get current quote screenshot
-    if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
-        UIGraphicsBeginImageContextWithOptions(self.view.bounds.size, NO, [UIScreen mainScreen].scale);
-    } else {
-        UIGraphicsBeginImageContext(self.view.bounds.size);
-    }
-    
-    _mainToolbar.hidden = YES;
-    _bannerView.hidden = YES;
-    [self.view.layer renderInContext:UIGraphicsGetCurrentContext()];
-    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    _mainToolbar.hidden = NO;
-    _bannerView.hidden = NO;
+    UIImage *image = [self takeScreenshot];
     
     FBSDKSharePhoto *photo = [[FBSDKSharePhoto alloc] init];
     photo.image = image;
@@ -789,13 +789,15 @@
     
     [FBSDKShareDialog showFromViewController:self
                                  withContent:content
-                                    delegate:nil];
+                                    delegate:self];
 }
 // *********************************************************************************
 
 // ******************************************************** TWITTER BUTTON PRESSED
 -(IBAction)twitterButtonPressed:(id)sender
 {
+    _btnTwitter.enabled = FALSE;
+    
     // check if twitter app is installed
     BOOL isInstalled = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://"]];
     if (!isInstalled)
@@ -805,19 +807,7 @@
     }
     
     // get current quote screenshot
-    if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
-        UIGraphicsBeginImageContextWithOptions(self.view.bounds.size, NO, [UIScreen mainScreen].scale);
-    } else {
-        UIGraphicsBeginImageContext(self.view.bounds.size);
-    }
-    
-    _mainToolbar.hidden = YES;
-    _bannerView.hidden = YES;
-    [self.view.layer renderInContext:UIGraphicsGetCurrentContext()];
-    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    _mainToolbar.hidden = NO;
-    _bannerView.hidden = NO;
+    UIImage *image = [self takeScreenshot];
     
     TWTRComposer *composer = [[TWTRComposer alloc] init];
     
@@ -836,6 +826,7 @@
         // Called from a UIViewController
         [composer showFromViewController:self completion:^(TWTRComposerResult result) {
             if (result == TWTRComposerResultCancelled) {
+                _btnTwitter.enabled = TRUE;
             }
             else
             {
@@ -854,6 +845,7 @@
                 // Called from a UIViewController
                 [composer showFromViewController:self completion:^(TWTRComposerResult result) {
                     if (result == TWTRComposerResultCancelled) {
+                        _btnTwitter.enabled = TRUE;
                     }
                     else
                     {
@@ -880,7 +872,7 @@
 
 -(IBAction)infoButtonPressed:(id)sender
 {
-    
+    _btnInfo.enabled = FALSE;
     NSString *appVersion = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
     
     NSString *msg = [[NSString alloc] initWithFormat:@"Stay inspired and motivated towards success! But what does success means? Success is not what society think it is. Success is yours! It’s crucial to figure out what exactly success means to you. I mean literally sit your butt in a chair and think critically about it. Think about all areas of life (health, relationships, social, career, financial, spiritual). Then work on your dreams! I know you have a lot! I have too, let’s reach them together!\n\n Thank you for using this application and enjoy the journey! It is the destination! \n \n Application: Road To Success \n Version: %@ \n Author: Gabriel Tarpian", appVersion];
@@ -1023,13 +1015,17 @@
     // check if quote needs to be changed
     bool change_quote = FALSE;
     
-    if(current_day != current_calendar_day)
+    if([UIApplication sharedApplication].applicationIconBadgeNumber == 1)
+        change_quote = TRUE;
+    [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
+    
+    if( (current_day != current_calendar_day) && (change_quote == FALSE) )
     {
         if ( (current_hour > notification_hour) || (current_hour == notification_hour && current_min >= notification_min) )
             change_quote = TRUE;
     }
     
-    if(secondTime == FALSE)
+    if(secondTime == FALSE && change_quote == FALSE)
         change_quote = TRUE;
     
     if(change_quote == TRUE)
@@ -1075,6 +1071,13 @@
 }
 // *********************************************************************************
 
+-(int) getDifferenceBetweenCurrentDateAndNotificationDate: (int)current_day : (int)notification_day
+{
+    int difference = 0;
+    
+    return difference;
+}
+
 
 // ******************************************************** SEND ALERT
 -(void) sendAlert:(NSString*)alertTitle :(NSString*)alertContent :(bool)delay
@@ -1102,7 +1105,13 @@
                                actionWithTitle:@"I am successful"
                                style:UIAlertActionStyleDefault
                                handler:^(UIAlertAction * action) {
+                                   
                                    [alert dismissViewControllerAnimated:YES completion:nil];
+                                   _btnSave.enabled = TRUE;
+                                   _btnClock.enabled = TRUE;
+                                   _btnTwitter.enabled = TRUE;
+                                   _btnInfo.enabled = TRUE;
+                                   
                                }];
     
     [alert addAction:okButton];
@@ -1313,6 +1322,7 @@
 // ******************************************************** CANCEL NOTIFICATION HOUR
 -(void) cancelNotificationHour
 {
+    _btnClock.enabled = TRUE;
     _toolbarNotification.hidden = YES;
     _datePickerNotification.hidden = YES;
     
@@ -1350,6 +1360,75 @@
 }
 // *********************************************************************************
 
+// Objective C
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *,id> *)options {
+    return [[Twitter sharedInstance] application:app openURL:url options:options];
+}
+
+- (void)sharer:(id<FBSDKSharing>)sharer didCompleteWithResults:(NSDictionary *)results {
+    NSLog(@"completed");
+    _btnFacebook.enabled = YES;
+}
+
+- (void)sharer:(id<FBSDKSharing>)sharer didFailWithError:(NSError *)error {
+    NSLog(@"fail %@",error.description);
+    _btnFacebook.enabled = YES;
+}
+
+- (void)sharerDidCancel:(id<FBSDKSharing>)sharer {
+    NSLog(@"cancel");
+    _btnFacebook.enabled = YES;
+}
+
+- (UIImage*)takeScreenshot
+{
+    _mainToolbar.hidden = YES;
+    _bannerView.hidden = YES;
+    
+    // Create a graphics context with the target size
+    // On iOS 4 and later, use UIGraphicsBeginImageContextWithOptions to take the scale into consideration
+    // On iOS prior to 4, fall back to use UIGraphicsBeginImageContext
+    CGSize imageSize = [[UIScreen mainScreen] bounds].size;
+    UIGraphicsBeginImageContextWithOptions(imageSize, NO, 0);
+    
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    // Iterate over every window from back to front
+    for (UIWindow *window in [[UIApplication sharedApplication] windows])
+    {
+        if (![window respondsToSelector:@selector(screen)] || [window screen] == [UIScreen mainScreen])
+        {
+            // -renderInContext: renders in the coordinate space of the layer,
+            // so we must first apply the layer's geometry to the graphics context
+            CGContextSaveGState(context);
+            // Center the context around the window's anchor point
+            CGContextTranslateCTM(context, [window center].x, [window center].y);
+            // Apply the window's transform about the anchor point
+            CGContextConcatCTM(context, [window transform]);
+            // Offset by the portion of the bounds left of and above the anchor point
+            CGContextTranslateCTM(context,
+                                  -[window bounds].size.width * [[window layer] anchorPoint].x,
+                                  -[window bounds].size.height * [[window layer] anchorPoint].y);
+            
+            // Render the layer hierarchy to the current context
+            [[window layer] renderInContext:context];
+            
+            // Restore the context
+            CGContextRestoreGState(context);
+        }
+    }
+    
+    // Retrieve the screenshot image
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    
+    UIGraphicsEndImageContext();
+    
+    _mainToolbar.hidden = NO;
+    _bannerView.hidden = NO;
+    
+    return image;
+}
+
 // ******************************************************** CENTER TEXT VIEW VERTICALLY (quote)
 -(void)adjustContentSize:(UITextView*)tv{
     CGFloat deadSpace = ([tv bounds].size.height - [tv contentSize].height);
@@ -1357,20 +1436,4 @@
     tv.contentInset = UIEdgeInsetsMake(inset, tv.contentInset.left, inset, tv.contentInset.right);
 }
 // *********************************************************************************
-
-// ******************************************************** RESIZE IMAGE
-- (UIImage *)imageWithImage:(UIImage *)image convertToSize:(CGSize)size {
-    UIGraphicsBeginImageContext(size);
-    [image drawInRect:CGRectMake(0, 0, size.width, size.height)];
-    UIImage *destImage = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    return destImage;
-}
-// *********************************************************************************
-
-// Objective C
-- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *,id> *)options {
-    return [[Twitter sharedInstance] application:app openURL:url options:options];
-}
-
 @end

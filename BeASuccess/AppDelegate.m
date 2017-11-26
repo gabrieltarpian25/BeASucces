@@ -24,8 +24,6 @@
     
     [[Twitter sharedInstance] startWithConsumerKey:@"YtrTHHT5vMdPMxSsSOTCBudlp" consumerSecret:@"tkyv37MqK7WdTETWTtixvzS78Bs4qfk4Gbcfv7YCUQDnqaUu13"];
     
-    [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
-    
     // Override point for customization after application launch.
     return YES;
     

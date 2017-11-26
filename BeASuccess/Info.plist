@@ -45,9 +45,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Used to save photos</string>
-	<key>UILaunchStoryboardName</key>
-	<string>Main</string>
+	<string>By allowing the app to access your photos, you will be able to save the quotes in your Photo Library.</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>
