@@ -46,6 +46,18 @@
 // format NSLog to not display timestamp
 
 
+static BOOL displayAdvice = TRUE;
+
+static NSArray *_bookTitles;
+static NSArray *_bookAuthors;
+static NSArray *_bookImages;
+
+static NSArray *_moviesTitle;
+static NSArray *_moviesYear;
+static NSArray *_moviesImages;
+
+static BOOL iphoneSE = FALSE;
+
 @implementation ViewController
 
 -(void) viewDidAppear:(BOOL)animated
@@ -57,13 +69,14 @@
     [NSThread sleepForTimeInterval:1.2f];
     
     bool initial_advice_displayed = [[NSUserDefaults standardUserDefaults] boolForKey:@"InitialAdviceDisplayed"];
-    if(initial_advice_displayed == TRUE)
+    if(initial_advice_displayed == TRUE && displayAdvice == TRUE )
     {
         int adviceId = [self calculateAdviceID];
         NSString *advice = [[DBManager getSharedInstance] getAdviceByID:adviceId];
         
-        [self sendAlert:@"Hey, successful, it's me! My advice for you is ..." :advice:false];
+        [self sendAlert:@"Hey, successful, it's me, Roady! My advice for you is ..." :advice:false];
     }
+    else displayAdvice = TRUE;
 }
 
 - (void)viewDidLoad {
@@ -74,31 +87,33 @@
     // It will be set when a quote needs to be calculated
     // [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
     
+    if([[UIDevice currentDevice]userInterfaceIdiom]==UIUserInterfaceIdiomPhone) {
+        
+        switch ((int)[[UIScreen mainScreen] nativeBounds].size.height) {
+                
+            case 1136:
+                // printf("iPhone 5 or 5S or 5C");
+                iphoneSE = TRUE;
+                break;
+            case 1334:
+                // printf("iPhone 6/6S/7/8");
+                break;
+            case 2208:
+                // printf("iPhone 6+/6S+/7+/8+");
+                break;
+            case 2436:
+                // printf("iPhone X");
+                break;
+        }
+    }
+    
+    [self initializeBooksAndMovies];
+    
     // Get if this is the first time of running the app
     BOOL boSecondTime = [[NSUserDefaults standardUserDefaults] boolForKey:@"SecondTime"];
     
     if(boSecondTime == NO)
     {
-        // request access to photo library
-        [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-            switch (status) {
-                case PHAuthorizationStatusAuthorized:
-                    break;
-                case PHAuthorizationStatusRestricted:
-                    break;
-                case PHAuthorizationStatusDenied:
-                    break;
-                default:
-                    break;
-            }
-        }];
-        
-        // register user for notification settings
-        UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
-        [center requestAuthorizationWithOptions:(UNAuthorizationOptionBadge | UNAuthorizationOptionSound | UNAuthorizationOptionAlert)
-                              completionHandler:^(BOOL granted, NSError * _Nullable error) {
-                              }];
-        
         // set current day as 0
         [[NSUserDefaults standardUserDefaults] setInteger:0 forKey:@"CurrentDay"];
         
@@ -134,7 +149,6 @@
             [self displayQuote];
             [self showInitialIntro_1];
             
-            [[NSUserDefaults standardUserDefaults] setBool:TRUE forKey:@"InitialAdviceDisplayed"];
         });
     }
     else [self displayQuote];
@@ -219,7 +233,7 @@
     _textAuthor = [[UITextView alloc]initWithFrame:CGRectMake(0, 0, 100,100)];
     
     // create the author text
-    NSString *textCopyright = [NSString stringWithFormat:@"RoadToSuccess\n%cGabriel Tarpian",169];
+    NSString *textCopyright = [NSString stringWithFormat:@"TheRoadToSuccess\n%cGabriel Tarpian",169];
     _textAuthor.text = textCopyright;
     UIFont *textAuthorFont = [UIFont fontWithName:@"Noteworthy-Bold" size:10];
     _textAuthor.font = textAuthorFont;
@@ -234,7 +248,20 @@
     int width_needed = (int) text_size.width;
     
     // create positions for copyright text
-    int textPosX = width - width_needed;
+    
+    // check if device is iPhone X and apply the offset
+    int iPhoneXOffset = 0;
+    if([[UIDevice currentDevice]userInterfaceIdiom]==UIUserInterfaceIdiomPhone)
+    {
+        switch ((int)[[UIScreen mainScreen] nativeBounds].size.height) {
+            case 2436:
+                iPhoneXOffset = 10;
+                break;
+            default:
+                break;
+        }
+    }
+    int textPosX = width - width_needed - iPhoneXOffset;
     int textPosY = height - height_needed;
     _textAuthor.frame = CGRectMake(textPosX, textPosY, width_needed, height_needed);
     
@@ -247,18 +274,14 @@
     // create the banner view
     _bannerView = [[GADBannerView alloc]initWithFrame:CGRectMake(bannerPosX, bannerPosY,bannerWidth,bannerHeight)];
     
-    /*
-     self.bannerView.adUnitID = @"ca-app-pub-7014753020131070/3584035347";
-     self.bannerView.rootViewController = self;
-     GADRequest *request = [GADRequest request];
-     
-     // this is used only for testing the device
-     request.testDevices = @[
-     @"" // this device
-     ];
-     
-     [self.bannerView loadRequest:request];
-     */
+     _bannerView.adUnitID = @"ca-app-pub-7014753020131070/3584035347";
+    _bannerView.rootViewController = self;
+    
+    //  TO DO: remove this when releasing the app (just for testing)
+    GADRequest *request = [GADRequest request];
+    [self.bannerView loadRequest:request];
+    
+    // [self.bannerView loadRequest:[GADRequest request]];
     
     // create toolbars
     [self vCreateToolbars:width];
@@ -398,11 +421,11 @@
         }
     }
     
-    // create the intro toolbar
+    // ########################################################## create the intro toolbar ###################################################
     _rightArrowToolbar = [[UIToolbar alloc]init];
     _rightArrowToolbar.frame = CGRectMake(0, 0+iPhoneXOffset, width, 40);
     
-    // ************* Settings button
+    // Settings button
     UIImage *imgSettings = [UIImage imageNamed:@"Settings_r.png"];
     // UIImage *imgArrowRight = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
     
@@ -418,11 +441,11 @@
     NSArray *items = [NSArray arrayWithObjects: _barBtnSettings, flexibleSpace, flexibleSpace, nil];
     [_rightArrowToolbar setItems:items animated:YES];
     
-    // create the toolbar
+    // ########################################################## create the main toolbar ###################################################
     _mainToolbar = [[UIToolbar alloc] init];
     _mainToolbar.frame = CGRectMake(-width, 0 + iPhoneXOffset, width, 40);
     
-    // ************* Left arrow button
+    // *** Left arrow button
     UIImage *imgArrowLeft = [UIImage imageNamed:@"LeftArrow_r.png"];
     // UIImage *imgArrowLeft = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
     
@@ -433,7 +456,7 @@
     [btnArrowLeft setShowsTouchWhenHighlighted:TRUE];
     _barBtnArrowLeft = [[UIBarButtonItem alloc] initWithCustomView:btnArrowLeft];
     
-    // ************* Clock button
+    // *** Clock button
     UIImage *imgClock = [UIImage imageNamed:@"Clock_r.png"];
     UIImage *imgClockSelected = [UIImage imageNamed:@"Clock_r_selected.png"];
     // UIImage *imgSettings = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
@@ -457,6 +480,77 @@
     [_btnSave setImage:imgSave forState:UIControlStateNormal];
     [_btnSave setImage:imgSaveSelected forState:UIControlStateDisabled];
     _barBtnSave = [[UIBarButtonItem alloc] initWithCustomView:_btnSave];
+    
+    // ************ Share button
+    UIImage *imgShare = [UIImage imageNamed:@"Share_r.png"];
+    
+    _btnShare = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_btnShare addTarget:self action:@selector(shareQuoteButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    [_btnShare setImage:imgShare forState:UIControlStateNormal];
+    [_btnShare setShowsTouchWhenHighlighted: TRUE];
+    _barBtnShare = [[UIBarButtonItem alloc] initWithCustomView:_btnShare];
+    
+    // ************ Books button
+    UIImage *imgBooks = [UIImage imageNamed:@"Books_r"];
+    
+    _btnBooks = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_btnBooks addTarget:self action:@selector(booksButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    [_btnBooks setImage:imgBooks forState:UIControlStateNormal];
+    [_btnBooks setImage:imgBooks forState:UIControlStateDisabled];
+    [_btnBooks setShowsTouchWhenHighlighted:TRUE];
+    _barBtnBooks = [[UIBarButtonItem alloc] initWithCustomView:_btnBooks];
+    
+    // ************ Movies button
+    UIImage *imgMovies = [UIImage imageNamed:@"Movies_r"];
+    
+    _btnMovies = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_btnMovies addTarget:self action:@selector(moviesButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    [_btnMovies setImage:imgMovies forState:UIControlStateNormal];
+    [_btnMovies setImage:imgMovies forState:UIControlStateDisabled];
+    [_btnMovies setShowsTouchWhenHighlighted:TRUE];
+    _barBtnMovies = [[UIBarButtonItem alloc] initWithCustomView:_btnMovies];
+     
+    // ************ Info button
+    UIImage *imgInfo = [UIImage imageNamed:@"Info_r"];
+    UIImage *imgInfoSelected = [UIImage imageNamed:@"Info_r_selected"];
+    // UIImage *imgInfo = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
+    
+    _btnInfo = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_btnInfo addTarget:self action:@selector(infoButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    // btnInfo.bounds = CGRectMake( 300, 5, 27, 27 );
+    [_btnInfo setImage:imgInfo forState:UIControlStateNormal];
+    [_btnInfo setImage:imgInfoSelected forState:UIControlStateDisabled];
+    _barBtnInfo = [[UIBarButtonItem alloc] initWithCustomView:_btnInfo];
+    
+    // make visible items on the toolbar
+    UIBarButtonItem *flexibleSpace2 = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
+    NSArray *items2 = [NSArray arrayWithObjects: _barBtnArrowLeft, flexibleSpace2, _barBtnClock, flexibleSpace2, _barBtnSave,flexibleSpace2,  _barBtnShare, flexibleSpace2,_barBtnBooks, flexibleSpace2, _barBtnMovies, flexibleSpace2,  _barBtnInfo, nil];
+    [_mainToolbar setItems:items2 animated:YES];
+    
+    // background color for rightArrowToolbar
+    [self.rightArrowToolbar setBackgroundImage:[UIImage new]
+                            forToolbarPosition:UIToolbarPositionAny
+                                    barMetrics:UIBarMetricsDefault];
+    _rightArrowToolbar.barTintColor = [UIColor clearColor];
+    
+    // background color for main toolbar
+    [self.mainToolbar setBackgroundImage:[UIImage new]
+                      forToolbarPosition:UIToolbarPositionAny
+                              barMetrics:UIBarMetricsDefault];
+    _mainToolbar.barTintColor = [UIColor clearColor];
+    
+    // ########################################################## create the share toolbar ###################################################
+    _shareToolbar = [[UIToolbar alloc] init];
+    _shareToolbar.frame = CGRectMake(0, -40, width, 40);
+    
+    // ************ ArrowUp Button
+    UIImage *imgArrowUp = [UIImage imageNamed:@"ArrowUp_r.png"];
+    
+    _btnArrowUp = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_btnArrowUp addTarget:self action:@selector(arrowUpButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    [_btnArrowUp setImage:imgArrowUp forState:UIControlStateNormal];
+    [_btnArrowUp setShowsTouchWhenHighlighted: TRUE];
+    _barBtnArrowUp = [[UIBarButtonItem alloc] initWithCustomView:_btnArrowUp];
     
     // ************ Facebook button
     UIImage *imgFacebook = [UIImage imageNamed:@"Facebook_r.png"];
@@ -483,37 +577,116 @@
     [_btnTwitter setImage:imgTwitterSelected forState:UIControlStateDisabled];
     _barBtnTwitter = [[UIBarButtonItem alloc] initWithCustomView:_btnTwitter];
     
-    // ************ Info button
-    UIImage *imgInfo = [UIImage imageNamed:@"Info_r"];
-    UIImage *imgInfoSelected = [UIImage imageNamed:@"Info_r_selected"];
-    // UIImage *imgInfo = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
+    // ************ WhatsApp button
+    UIImage *imgPlus = [UIImage imageNamed:@"Plus_r.png"];
+    UIImage *imgPlusSelected = [UIImage imageNamed:@"Plus_r_selected.png"];
     
-    _btnInfo = [UIButton buttonWithType:UIButtonTypeCustom];
-    [_btnInfo addTarget:self action:@selector(infoButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
-    // btnInfo.bounds = CGRectMake( 300, 5, 27, 27 );
-    [_btnInfo setImage:imgInfo forState:UIControlStateNormal];
-    [_btnInfo setImage:imgInfoSelected forState:UIControlStateDisabled];
-    _barBtnInfo = [[UIBarButtonItem alloc] initWithCustomView:_btnInfo];
+     _btnPlus = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_btnPlus addTarget:self action:@selector(whatsAppButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    [_btnPlus setImage:imgPlus forState:UIControlStateNormal];
+    [_btnPlus setImage:imgPlusSelected forState:UIControlStateDisabled];
+    _barBtnPlus = [[UIBarButtonItem alloc] initWithCustomView:_btnPlus];
     
     // make visible items on the toolbar
-    UIBarButtonItem *flexibleSpace2 = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
-    NSArray *items2 = [NSArray arrayWithObjects: _barBtnArrowLeft, flexibleSpace2, _barBtnClock, flexibleSpace2, _barBtnSave,flexibleSpace2,  _barBtnFacebook, flexibleSpace2,  _barBtnTwitter, flexibleSpace2, _barBtnInfo, nil];
-    [_mainToolbar setItems:items2 animated:YES];
+    UIBarButtonItem *flexibleSpace3 = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
+    NSArray *items3 = [NSArray arrayWithObjects: _barBtnArrowUp,flexibleSpace3, _barBtnFacebook, flexibleSpace3, _barBtnTwitter, flexibleSpace3, _barBtnPlus, nil];
+    [_shareToolbar setItems:items3 animated:YES];
     
-    // background color for rightArrowToolbar
-    [self.rightArrowToolbar setBackgroundImage:[UIImage new]
+    // background color for _shareToolbar
+    [self.shareToolbar setBackgroundImage:[UIImage new]
                             forToolbarPosition:UIToolbarPositionAny
                                     barMetrics:UIBarMetricsDefault];
-    _rightArrowToolbar.barTintColor = [UIColor clearColor];
+    _shareToolbar.barTintColor = [UIColor clearColor];
     
-    // background color for main toolbar
-    [self.mainToolbar setBackgroundImage:[UIImage new]
-                      forToolbarPosition:UIToolbarPositionAny
-                              barMetrics:UIBarMetricsDefault];
-    _mainToolbar.barTintColor = [UIColor clearColor];
+    // ########### create the books toolbar ############
+    _booksToolbar = [[UIToolbar alloc] init];
+    _booksToolbar.frame = CGRectMake(width, 0, width, 40);
+    _booksToolbar.tintColor = [UIColor blackColor];
+    _booksToolbar.backgroundColor = [UIColor blackColor];
+    _booksToolbar.barStyle = UIBarStyleBlack;
+    
+    // **** create arrow right image
+    UIImage *imgCancelBooksTable = [UIImage imageNamed:@"ArrowRight_r"];
+    
+    _btnHideBooksToolbar = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_btnHideBooksToolbar addTarget:self action:@selector(CancelBooksToolbarButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    [_btnHideBooksToolbar setImage:imgCancelBooksTable forState:UIControlStateNormal];
+    [_btnHideBooksToolbar setShowsTouchWhenHighlighted: TRUE];
+    _barBtnHideBooksToolbar = [[UIBarButtonItem alloc] initWithCustomView:_btnHideBooksToolbar];
+    
+    // text color
+    UIColor *textColor = [UIColor colorWithRed:255.0f/255.0f
+                                         green:165.0f/255.0f
+                                          blue:0.0f/255.0f
+                                         alpha:1.0f];
+    
+    UIBarButtonItem* booksTitleButton = [[UIBarButtonItem alloc] initWithTitle:@"Books" style:UIBarButtonItemStyleDone target:self action:nil];
+    [booksTitleButton setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys: textColor,  NSForegroundColorAttributeName,nil] forState:UIControlStateNormal];
+    [booksTitleButton setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys: textColor,  NSForegroundColorAttributeName,nil] forState:UIControlStateDisabled];
+    // [booksTitleButton setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys: booksTitleFont,  NSFontAttributeName,nil] forState:UIControlStateNormal];
+    // [booksTitleButton setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys: booksTitleFont,  NSFontAttributeName,nil] forState:UIControlStateDisabled];
+    booksTitleButton.enabled = NO;
+    
+    // ************ Info button
+    UIImage *imgInfoBooks = [UIImage imageNamed:@"Info_r"];
+    UIImage *imgInfoBooksSelected = [UIImage imageNamed:@"Info_r_selected"];
+    // UIImage *imgInfo = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
+    
+    _btnInfoBooksToolbar = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_btnInfoBooksToolbar addTarget:self action:@selector(infoBooksButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    // btnInfo.bounds = CGRectMake( 300, 5, 27, 27 );
+    [_btnInfoBooksToolbar setImage:imgInfoBooks forState:UIControlStateNormal];
+    [_btnInfoBooksToolbar setImage:imgInfoBooksSelected forState:UIControlStateDisabled];
+    _barBtnInfoBooksToolbar = [[UIBarButtonItem alloc] initWithCustomView:_btnInfoBooksToolbar];
+    
+    // set items to booksToolbar
+    NSArray *items4 = [NSArray arrayWithObjects: _barBtnHideBooksToolbar, flexibleSpace3, booksTitleButton, flexibleSpace3, _barBtnInfoBooksToolbar, nil];
+    [_booksToolbar setItems:items4 animated:YES];
+    
+    // ########### create the books toolbar ############
+    _moviesToolbar = [[UIToolbar alloc] init];
+    _moviesToolbar.frame = CGRectMake(width, 0, width, 40);
+    _moviesToolbar.tintColor = [UIColor blackColor];
+    _moviesToolbar.backgroundColor = [UIColor blackColor];
+    _moviesToolbar.barStyle = UIBarStyleBlack;
+    
+    // **** create arrow right image
+    UIImage *imgCancelMoviesTable = [UIImage imageNamed:@"ArrowRight_r"];
+    
+    _btnHideMoviesToolbar = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_btnHideMoviesToolbar addTarget:self action:@selector(CancelMoviesToolbarButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    [_btnHideMoviesToolbar setImage:imgCancelMoviesTable forState:UIControlStateNormal];
+    [_btnHideMoviesToolbar setShowsTouchWhenHighlighted: TRUE];
+    _barBtnHideMoviesToolbar = [[UIBarButtonItem alloc] initWithCustomView:_btnHideMoviesToolbar];
+    
+    UIBarButtonItem* moviesTitleButton = [[UIBarButtonItem alloc] initWithTitle:@"Movies" style:UIBarButtonItemStyleDone target:self action:nil];
+    [moviesTitleButton setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys: textColor,  NSForegroundColorAttributeName,nil] forState:UIControlStateNormal];
+    [moviesTitleButton setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys: textColor,  NSForegroundColorAttributeName,nil] forState:UIControlStateDisabled];
+    // [booksTitleButton setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys: booksTitleFont,  NSFontAttributeName,nil] forState:UIControlStateNormal];
+    // [booksTitleButton setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys: booksTitleFont,  NSFontAttributeName,nil] forState:UIControlStateDisabled];
+    moviesTitleButton.enabled = NO;
+    
+    // ************ Info button
+    UIImage *imgInfoMovies = [UIImage imageNamed:@"Info_r"];
+    UIImage *imgInfoMoviesSelected = [UIImage imageNamed:@"Info_r_selected"];
+    // UIImage *imgInfo = [self imageWithImage:aux convertToSize:CGSizeMake(32, 32)];
+    
+    _btnInfoMoviesToolbar = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_btnInfoMoviesToolbar addTarget:self action:@selector(infoMoviesButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    // btnInfo.bounds = CGRectMake( 300, 5, 27, 27 );
+    [_btnInfoMoviesToolbar setImage:imgInfoMovies forState:UIControlStateNormal];
+    [_btnInfoMoviesToolbar setImage:imgInfoMoviesSelected forState:UIControlStateDisabled];
+    _barBtnInfoMoviesToolbar = [[UIBarButtonItem alloc] initWithCustomView:_btnInfoMoviesToolbar];
+    
+    // set items to booksToolbar
+    NSArray *items5 = [NSArray arrayWithObjects: _barBtnHideMoviesToolbar, flexibleSpace3, moviesTitleButton, flexibleSpace3, _barBtnInfoMoviesToolbar, nil];
+    [_moviesToolbar setItems:items5 animated:YES];
     
     [self.view addSubview:_rightArrowToolbar];
     [self.view addSubview:_mainToolbar];
+    [self.view addSubview:_shareToolbar];
+    [self.view addSubview:_booksToolbar];
+    [self.view addSubview:_moviesToolbar];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -578,7 +751,6 @@
     NSDate *newDate = [gregorian dateFromComponents: components];
     _datePickerNotification.date = newDate;
     
-    
     // setup the toolbar
     _toolbarNotification = [[UIToolbar alloc] initWithFrame:CGRectMake(0,0,self.view.frame.size.width,45)];
     _toolbarNotification.barStyle = UIBarStyleDefault;
@@ -606,6 +778,60 @@
     [self.view addSubview:_toolbarNotification];
 }
 // *********************************************************************************
+
+-(IBAction)CancelBooksToolbarButtonPressed:(id)sender
+{
+    _btnBooks.enabled = TRUE;
+    
+    // Get screen dimension
+    CGRect screenRect = [[UIScreen mainScreen] bounds];
+    int width = screenRect.size.width;
+    
+    // create the animation
+    [UIView animateWithDuration:0.6
+                     animations:^(void)
+     {
+         // show booksToolbar
+         CGRect booksToolbarFrame = self.booksToolbar.frame;
+         booksToolbarFrame.origin.x = width;
+         self.booksToolbar.frame = booksToolbarFrame;
+         
+         // show tableView
+         CGRect tableViewFrame = _booksTableView.frame;
+         tableViewFrame.origin.x = width;
+         _booksTableView.frame = tableViewFrame;
+     }
+                     completion:^(BOOL finished)
+     {
+     }];
+}
+
+-(IBAction)CancelMoviesToolbarButtonPressed:(id)sender
+{
+    _btnMovies.enabled = TRUE;
+    
+    // Get screen dimension
+    CGRect screenRect = [[UIScreen mainScreen] bounds];
+    int width = screenRect.size.width;
+    
+    // create the animation
+    [UIView animateWithDuration:0.6
+                     animations:^(void)
+     {
+         // hide moviesToolbar
+         CGRect booksToolbarFrame = self.moviesToolbar.frame;
+         booksToolbarFrame.origin.x = width;
+         self.moviesToolbar.frame = booksToolbarFrame;
+         
+         // hide tableView
+         CGRect tableViewFrame = _moviesTableView.frame;
+         tableViewFrame.origin.x = width;
+         _moviesTableView.frame = tableViewFrame;
+     }
+                     completion:^(BOOL finished)
+     {
+     }];
+}
 
 // ******************************************************** NOTIFICATION HOUR CHANGED
 -(void) notificationHourChanged
@@ -670,15 +896,15 @@
 // ******************************************************** CREATE PUSH NOTIFICATION
 -(void) createPushNotification:(int)hour m:(int)minute boAlert:(BOOL)alert
 {
-    
     // first of all, cancel all notifications
     [[UNUserNotificationCenter currentNotificationCenter] removeAllPendingNotificationRequests];
     
-    NSDate *now = [NSDate date];
+    // get current quote day
     NSCalendar *calendarN = [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
-    
-    // create the date from today at the desired hour
+    NSDate *now = [NSDate date];
     NSDateComponents *componentsN = [calendarN components:NSCalendarUnitYear|NSCalendarUnitMonth|NSCalendarUnitDay fromDate:now];
+    
+    // create the date from today or tomorrow at the desired hour
     [componentsN setHour:hour];
     [componentsN setMinute:minute];
     
@@ -690,7 +916,7 @@
     
     UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
     content.title = [NSString localizedUserNotificationStringForKey:@"Hey, successful!" arguments:nil];
-    content.body = [NSString localizedUserNotificationStringForKey:@"I just have a new quote for you!"
+    content.body = [NSString localizedUserNotificationStringForKey:@"It's time for a quote!"
                                                          arguments:nil];
     content.sound = [UNNotificationSound defaultSound];
     NSInteger myValue = 1;
@@ -774,6 +1000,7 @@
     if (!isInstalled)
     {
         [self sendAlert:@"Error" :@"You need to have Facebook app installed in order to share this quote":false];
+        
         return;
     }
     
@@ -785,7 +1012,7 @@
     photo.userGenerated = YES;
     FBSDKSharePhotoContent *content = [[FBSDKSharePhotoContent alloc] init];
     content.photos = @[photo];
-    content.hashtag = [FBSDKHashtag hashtagWithString:@"#RoadToSuccess"];
+    content.hashtag = [FBSDKHashtag hashtagWithString:@"#TheRoadToSuccess"];
     
     [FBSDKShareDialog showFromViewController:self
                                  withContent:content
@@ -811,7 +1038,7 @@
     
     TWTRComposer *composer = [[TWTRComposer alloc] init];
     
-    [composer setText:@"#RoadToSuccess #QuoteOfTheDay"];
+    [composer setText:@"#TheRoadToSuccess #QuoteOfTheDay"];
     [composer setImage:image];
     
     /*
@@ -875,19 +1102,32 @@
     _btnInfo.enabled = FALSE;
     NSString *appVersion = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
     
-    NSString *msg = [[NSString alloc] initWithFormat:@"Stay inspired and motivated towards success! But what does success means? Success is not what society think it is. Success is yours! It’s crucial to figure out what exactly success means to you. I mean literally sit your butt in a chair and think critically about it. Think about all areas of life (health, relationships, social, career, financial, spiritual). Then work on your dreams! I know you have a lot! I have too, let’s reach them together!\n\n Thank you for using this application and enjoy the journey! It is the destination! \n \n Application: Road To Success \n Version: %@ \n Author: Gabriel Tarpian", appVersion];
+    NSString *msg = [[NSString alloc] initWithFormat:@"Success is a very personal thing. What drives one person may be radically different for another. And understanding how others measure success can help you better understand your own definition. For me, health success, right now, is having a muscular and lean body, weighting 75 kg (165 lbs) and having a ten percent body fat, having an incredible energy to work, play, have fun and be active all day. How do I plan to achieve success? By having 3 home workouts per week (usually in the morning before going to work), drinking 2l of water per day, resting 7 hours per night, having at least 2 days per week without meat, eating at least 3 salads per week. When do I plan to achieve success? By the end of May, 2018. So now I know what success is for me, I know how to achieve it and I’ve also set a due date. What should I do next? Take action, stick to the schedule! What I will do after I reach success? I will change my definition for success, I will raise the bar, I will continue my road to success. This is an example of how to define success. \n\nWhat you should do next? Define success in all areas of life (health, relationships, social, career, financial, spiritual, giving). Please be careful, define your version of success not the version of your parents, friends, relatives or anybody else have set for you. Then take action! I wish you to grow and be the best version of you!\n\nThank you for using this application!! The main important thing is to enjoy the journey because it is actually the destination. There is no point in trying to reach something that does not make you happy.\n\n The Road To Success \n Version: %@ \n\nCopyright © 2017 \nGabriel Tarpian\nAll rights reserved", appVersion];
     
-    [self sendAlert:@"About RoadToSuccess" :msg:false];
+    [self sendAlert:@"What is Success?" :msg:false];
 }
 // *********************************************************************************
 
+-(IBAction)infoBooksButtonPressed:(id)sender
+{
+    _btnInfoBooksToolbar.enabled = FALSE;
+    
+    [self sendAlert:@"Hey, successful! It's me, Roady..." :@"Here are some books that will help you in your Road To Success. These books will help you to achieve goals faster, be more productive, have a better money management and increase your wisdom about life. I recommend you to read all of them, commit yourself to reading 1,2,3 or even 4 books per month. The main important thing is to commit to something and stick to the schedule, no matter how small the commitment is. By starting reading, you will discover many more books, feel free to read anything you like. Please take notice that you will change your life in a spectacular way!":false];
+}
+
+-(IBAction)infoMoviesButtonPressed:(id)sender
+{
+    _btnInfoMoviesToolbar.enabled = FALSE;
+    
+    [self sendAlert:@"Hey, successful! It's me, Roady..." :@"Here are some movies that will inspire and uplift you. You may find strength when going through some hard times or you could just boost your motivation. Watch and learn. Enjoy!":false];
+}
 
 // ******************************************************** SHOW ADVICE
 -(void) showAdvice:(NSString*)advice
 {
     // send a confirmation alert
     UIAlertController * alert = [UIAlertController
-                                 alertControllerWithTitle:@"Hey, successful! It's me..."
+                                 alertControllerWithTitle:@"Hey, successful! It's me, Roady..."
                                  message:advice
                                  preferredStyle:UIAlertControllerStyleAlert];
     // create color for toolbar
@@ -1015,7 +1255,7 @@
     // check if quote needs to be changed
     bool change_quote = FALSE;
     
-    if([UIApplication sharedApplication].applicationIconBadgeNumber == 1)
+    if([UIApplication sharedApplication].applicationIconBadgeNumber == 1 && (current_day != current_calendar_day) )
         change_quote = TRUE;
     [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
     
@@ -1060,7 +1300,7 @@
             [self initializeQuotesArray];
         else [[NSUserDefaults standardUserDefaults] setObject:quotes forKey:@"AvailableQuotes"];
         
-        //[[NSUserDefaults standardUserDefaults] setInteger:current_calendar_day forKey:@"CurrentDay"];
+        [[NSUserDefaults standardUserDefaults] setInteger:current_calendar_day forKey:@"CurrentDay"];
         [[NSUserDefaults standardUserDefaults] setInteger:quoteID forKey:@"CurrentQuoteID"];
         
         return_value = quoteID;
@@ -1111,6 +1351,9 @@
                                    _btnClock.enabled = TRUE;
                                    _btnTwitter.enabled = TRUE;
                                    _btnInfo.enabled = TRUE;
+                                   _btnFacebook.enabled = TRUE;
+                                   _btnInfoBooksToolbar.enabled = TRUE;
+                                   _btnInfoMoviesToolbar.enabled = TRUE;
                                    
                                }];
     
@@ -1162,7 +1405,7 @@
 -(void) showInitialIntro_1
 {
     
-    NSString *intro = @"I am 23 years old. A few years ago, I had no idea what I would do with my life. I discovered my passion for programming late in high school. I was a decent programmer in college and I got a decent job as a programmer. Everything was decent in my life. Until one day, when I said “Enough! I do no want a decent life, I want a wonderful life!”. So I started my journey for greatness and mastery by implementing new habits like getting up early and reading/ working out/ programming, spending more time with the loved ones, helping others. I also cut most of the bad habits like watching TV, sleeping too much, spending too much time on social networks. And here I am, after 1.5 years, having a great health, relationship with babe is stronger than ever, almost doubled my earnings, got an amazing job and released this iOS app :). My life now concentrates on three words: loving, giving, growing. It’s not something huge, but it is something and many more will come! I invite you to join me and others in this adventure for greatness and mastery and your life will never be the same.\n\n P.S.: A year from now you wish you had started today.";
+    NSString *intro = @"I’m the creator of this app. I just turned 24. Two years ago, driven by the desire to have a better life, I bought a self development book. I discovered something incredible in that book: you are the creator of your own life. This is how My Road To Success started. From that day, I committed to constant learning and growing, no more complaining and blaming, taking full responsibility for all aspects of my life and helping other people too. I implemented new habits in my life like getting up early and doing something productive before going to work (learning/ programming/ working out). I am also spending more time with the loved ones and helping others. I cut most of the bad habits like watching TV, sleeping too much, spending too much time on social networks. Results showed up and today I have a way better life, I am super healthy, I have a strong relationship with my girlfriend, I got a great new job in programming and my earnings increased with 50% (compared to two years ago) which allowed me to donate even more. This is not something huge but I am just getting started and many more will come. I invite you to join me and many others in this adventure to create our own lives. Trust me, your life will never be the same.\n\n P.S.: A year from now you wish you had started today.";
     
     // send a confirmation alert
     UIAlertController * alert = [UIAlertController
@@ -1203,11 +1446,11 @@
 // ******************************************************** SHOW INITIAL INTRO 2
 -(void) showInitialIntro_2
 {
-    NSString *intro = @"I am your success assistant. Before you start using this app, you should define what success means to you. Success is not what society think it is. Success is yours! Sit down and think about all areas of life (health, relationships, social, career, financial, spiritual). If you haven't found your passion yet, don't worry! You're not alone! In this app you will find interesting definitions of success, hope it will help you find yours!\n\n Thank you for downloading the app, let's reach our goals together!";
+    NSString *intro = @"From now on, I will assist you in Your Road To Success. Before you start using this app, you should define what success means to you. Success is not what society think it is. Success is yours! Sit down and think about all areas of life (health, relationships, career, personal development, financial, giving). At the “Info” section in this app, you will find a mini-guide on how to clearly define what success means to you. If you haven't found your passion yet, don't worry! You're not alone! In this app you will find interesting definitions of success, hope it will help you create yours!\n\n Thank you for downloading the app, let's reach our goals together!";
     
     // send a confirmation alert
     UIAlertController * alert = [UIAlertController
-                                 alertControllerWithTitle:@"Hey, successful! It's me..."
+                                 alertControllerWithTitle:@"Hey, successful! It's me, Roady ..."
                                  message:intro
                                  preferredStyle:UIAlertControllerStyleAlert];
     // create color for toolbar
@@ -1243,11 +1486,11 @@
 // ******************************************************** SHOW INITIAL INTRO 3
 -(void) showInitialIntro_3
 {
-    NSString *intro = @"Everytime you open the app, I will give you an advice about life. I gathered these advices from the best life coaches of the world and I really want to share them with you. Take advantage of them!\n\n Thank you for downloading the app, let's reach our goals together!";
+    NSString *intro = @"Every time you open the app, I will give you an advice about life. I gathered these advices from the best life coaches and experts of the world and I really want to share them with you. Take advantage of them!\n\n Thank you for downloading the app, let's reach our goals together!";
     
     // send a confirmation alert
     UIAlertController * alert = [UIAlertController
-                                 alertControllerWithTitle:@"Hey, successful! It's me..."
+                                 alertControllerWithTitle:@"Hey, successful! Roady here ..."
                                  message:intro
                                  preferredStyle:UIAlertControllerStyleAlert];
     // create color for toolbar
@@ -1283,11 +1526,11 @@
 // ******************************************************** SHOW INITIAL INTRO 4
 -(void) showInitialIntro_4
 {
-    NSString *intro = @"There is a small add at the bottom of the screen. It will not bother you and will not interfere with our content. If you have the possibility, please use our app with internet connection turned ON, 50% of the earnings will be donated to different charities. I thank you in advance for your nobility. \n\n Thank you for downloading the app, let's reach our goals together!";
+    NSString *intro = @"There is a small add at the bottom of the screen. It will not bother you and will not interfere with our content. If you have the possibility, please use our app with an active internet connection. 50% of the earnings will be donated to different charities. I thank you in advance for your nobility. \n\n Thank you for downloading the app, let's reach our goals together!";
     
     // send a confirmation alert
     UIAlertController * alert = [UIAlertController
-                                 alertControllerWithTitle:@"Hey, successful! It's me..."
+                                 alertControllerWithTitle:@"Hey, successful! Roady on air ..."
                                  message:intro
                                  preferredStyle:UIAlertControllerStyleAlert];
     // create color for toolbar
@@ -1307,6 +1550,27 @@
                                handler:^(UIAlertAction * action) {
                                    //Handle no, thanks button
                                    [alert dismissViewControllerAnimated:YES completion:nil];
+                                   
+                                   [[NSUserDefaults standardUserDefaults] setBool:TRUE forKey:@"InitialAdviceDisplayed"];
+                                   
+                                   // request access to photo library
+                                   [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+                                       switch (status) {
+                                           case PHAuthorizationStatusAuthorized:
+                                           case PHAuthorizationStatusRestricted:
+                                           case PHAuthorizationStatusDenied:
+                                           default:
+                                           {
+                                               // register user for notification settings
+                                               UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+                                               [center requestAuthorizationWithOptions:(UNAuthorizationOptionBadge | UNAuthorizationOptionSound | UNAuthorizationOptionAlert)
+                                                                     completionHandler:^(BOOL granted, NSError * _Nullable error) {
+                                                                     }];
+                                               break;
+                                           }
+                                               
+                                       }
+                                   }];
                                }];
     
     [alert addAction:okButton];
@@ -1384,6 +1648,7 @@
 {
     _mainToolbar.hidden = YES;
     _bannerView.hidden = YES;
+    _shareToolbar.hidden = YES;
     
     // Create a graphics context with the target size
     // On iOS 4 and later, use UIGraphicsBeginImageContextWithOptions to take the scale into consideration
@@ -1425,6 +1690,7 @@
     
     _mainToolbar.hidden = NO;
     _bannerView.hidden = NO;
+    _shareToolbar.hidden = NO;
     
     return image;
 }
@@ -1436,4 +1702,483 @@
     tv.contentInset = UIEdgeInsetsMake(inset, tv.contentInset.left, inset, tv.contentInset.right);
 }
 // *********************************************************************************
+
+-(IBAction)shareQuoteButtonPressed:(id)sender
+{
+    int posXForMainToolbar = self.shareToolbar.frame.origin.x;
+    int posYForMainToolbar = self.shareToolbar.frame.origin.y;
+    
+    int posXForShareToolbar = self.mainToolbar.frame.origin.x;
+    int posYForShareToolbar = self.mainToolbar.frame.origin.y;
+    
+    // create animation
+    [UIView animateWithDuration:0.6
+                     animations:^(void)
+     {
+         // hide main toolbar
+         CGRect mainToolbarFrame = self.mainToolbar.frame;
+         mainToolbarFrame.origin.x = posXForMainToolbar;
+         mainToolbarFrame.origin.y = posYForMainToolbar;
+         self.mainToolbar.frame = mainToolbarFrame;
+         
+         // show share toolbar
+         CGRect shareToolbarFrame = self.shareToolbar.frame;
+         shareToolbarFrame.origin.x = posXForShareToolbar;
+         shareToolbarFrame.origin.y = posYForShareToolbar;
+         self.shareToolbar.frame = shareToolbarFrame;
+     }
+                     completion:^(BOOL finished)
+     {
+     }];
+}
+
+-(IBAction)arrowUpButtonPressed:(id)sender
+{
+    int posXForMainToolbar = self.shareToolbar.frame.origin.x;
+    int posYForMainToolbar = self.shareToolbar.frame.origin.y;
+    
+    int posXForShareToolbar = self.mainToolbar.frame.origin.x;
+    int posYForShareToolbar = self.mainToolbar.frame.origin.y;
+    
+    // create animation
+    [UIView animateWithDuration:0.6
+                     animations:^(void)
+     {
+         // hide share toolbar
+         CGRect shareToolbarFrame = self.shareToolbar.frame;
+         shareToolbarFrame.origin.x = posXForShareToolbar;
+         shareToolbarFrame.origin.y = posYForShareToolbar;
+         self.shareToolbar.frame = shareToolbarFrame;
+         
+         // show main toolbar
+         CGRect mainToolbarFrame = self.mainToolbar.frame;
+         mainToolbarFrame.origin.x = posXForMainToolbar;
+         mainToolbarFrame.origin.y = posYForMainToolbar;
+         self.mainToolbar.frame = mainToolbarFrame;
+     }
+                     completion:^(BOOL finished)
+     {
+         _btnShare.enabled = YES;
+     }];
+}
+
+-(IBAction)whatsAppButtonPressed:(id)sender
+{
+    _btnPlus.enabled = NO;
+    displayAdvice = FALSE;
+    
+    UIImage *img = [self takeScreenshot];
+    NSMutableArray *activityItems= [NSMutableArray arrayWithObjects:img, nil];
+    UIActivityViewController *activityViewController = [[UIActivityViewController alloc] initWithActivityItems:activityItems applicationActivities:nil];
+    
+    activityViewController.completionWithItemsHandler = ^(NSString *activityType, BOOL completed, NSArray *returnedItems, NSError *activityError)
+    {
+        _btnPlus.enabled = TRUE;
+    };
+    
+    activityViewController.excludedActivityTypes = @[UIActivityTypePostToFacebook,
+                                                     UIActivityTypePostToTwitter,
+                                                     UIActivityTypePostToWeibo,
+                                                     UIActivityTypePrint,
+                                                     UIActivityTypeCopyToPasteboard,
+                                                     UIActivityTypeAssignToContact,
+                                                     UIActivityTypeSaveToCameraRoll,
+                                                     UIActivityTypeAddToReadingList,
+                                                     UIActivityTypePostToFlickr,
+                                                     UIActivityTypePostToVimeo,
+                                                     UIActivityTypePostToTencentWeibo,
+                                                     UIActivityTypeOpenInIBooks,
+                                                     UIActivityTypeMessage];
+    
+    [self presentViewController:activityViewController animated:YES completion:nil];
+}
+
+-(IBAction)booksButtonPressed:(id)sender
+{
+    _btnBooks.enabled = NO;
+    [self makeBooksTableView];
+    
+    // create the animation
+    [UIView animateWithDuration:0.6
+                     animations:^(void)
+     {
+         // show booksToolbar
+         CGRect booksToolbarFrame = self.booksToolbar.frame;
+         booksToolbarFrame.origin.x = 0;
+         self.booksToolbar.frame = booksToolbarFrame;
+         
+         // show tableView
+         CGRect tableViewFrame = _booksTableView.frame;
+         tableViewFrame.origin.x = 0;
+         _booksTableView.frame = tableViewFrame;
+     }
+                     completion:^(BOOL finished)
+     {
+     }];
+}
+
+-(IBAction)moviesButtonPressed:(id)sender
+{
+    _btnMovies.enabled = NO;
+    
+    [self makeMoviesTableView];
+    
+    // create the animation
+    [UIView animateWithDuration:0.6
+                     animations:^(void)
+     {
+         // show moviesToolbar
+         CGRect booksToolbarFrame = self.moviesToolbar.frame;
+         booksToolbarFrame.origin.x = 0;
+         self.moviesToolbar.frame = booksToolbarFrame;
+         
+         // show tableView
+         CGRect tableViewFrame = _moviesTableView.frame;
+         tableViewFrame.origin.x = 0;
+         _moviesTableView.frame = tableViewFrame;
+     }
+                     completion:^(BOOL finished)
+     {
+     }];
+}
+
+-(void)makeBooksTableView
+{
+    // Get screen dimension
+    CGRect screenRect = [[UIScreen mainScreen] bounds];
+    int width = screenRect.size.width;
+    int height = screenRect.size.height;
+    CGRect tableFrame = CGRectMake(width, 40, width, height - 40);
+    
+    _booksTableView = [[UITableView alloc]initWithFrame:tableFrame style:UITableViewStylePlain];
+    
+    _booksTableView.rowHeight = 80;
+    _booksTableView.sectionHeaderHeight = 60;
+    _booksTableView.sectionFooterHeight = 20;
+    _booksTableView.scrollEnabled = YES;
+    _booksTableView.showsVerticalScrollIndicator = YES;
+    _booksTableView.userInteractionEnabled = YES;
+    _booksTableView.bounces = YES;
+    
+    // tableview color
+    _booksTableView.backgroundView = nil;
+    _booksTableView.backgroundColor = [UIColor blackColor];
+    
+    _booksTableView.allowsSelection = NO;
+    
+    _booksTableView.delegate = self;
+    _booksTableView.dataSource = self;
+    
+    [self.view addSubview:_booksTableView];
+}
+
+-(void) makeMoviesTableView
+{
+    // Get screen dimension
+    CGRect screenRect = [[UIScreen mainScreen] bounds];
+    int width = screenRect.size.width;
+    int height = screenRect.size.height;
+    CGRect tableFrame = CGRectMake(width, 40, width, height - 40);
+    
+    _moviesTableView = [[UITableView alloc]initWithFrame:tableFrame style:UITableViewStylePlain];
+    
+    _moviesTableView.rowHeight = 80;
+    _moviesTableView.sectionHeaderHeight = 60;
+    _moviesTableView.sectionFooterHeight = 20;
+    _moviesTableView.scrollEnabled = YES;
+    _moviesTableView.showsVerticalScrollIndicator = YES;
+    _moviesTableView.userInteractionEnabled = YES;
+    _moviesTableView.bounces = YES;
+    
+    // tableview color
+    _moviesTableView.backgroundView = nil;
+    _moviesTableView.backgroundColor = [UIColor blackColor];
+    
+    _moviesTableView.allowsSelection = NO;
+    
+    _moviesTableView.delegate = self;
+    _moviesTableView.dataSource = self;
+    
+    [self.view addSubview:_moviesTableView];
+}
+
+// ########################################################################## table view specifics
+#pragma mark - Table View Data source
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:
+(NSInteger)section
+{
+    if( tableView == _booksTableView )
+        return [_bookTitles count];
+    else return [_moviesTitle count];
+}
+
+-(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *CellIdentifier = @"Cell";
+    
+    // Reuse and create cell
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    if (cell == nil) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
+    }
+    
+    // text color
+    UIColor *textColor = [UIColor colorWithRed:255.0f/255.0f
+                                         green:165.0f/255.0f
+                                          blue:0.0f/255.0f
+                                         alpha:1.0f];
+    
+    // Update cell data contents
+    if( tableView == _booksTableView)
+    {
+        cell.textLabel.text = [_bookTitles objectAtIndex:indexPath.row];
+        cell.detailTextLabel.text = [_bookAuthors objectAtIndex:indexPath.row];
+    }
+    else
+    {
+        cell.textLabel.text = [_moviesTitle objectAtIndex:indexPath.row];
+        cell.detailTextLabel.text = [_moviesYear objectAtIndex:indexPath.row];
+    }
+
+    
+    
+    cell.backgroundColor = [UIColor blackColor];
+    cell.textLabel.textColor = textColor;
+    cell.detailTextLabel.textColor = textColor;
+    
+    // wrap text
+    
+    // set text label X position
+    [cell setIndentationLevel:5];
+    
+    // create the font
+    UIFont *textLabelFont;
+    if( iphoneSE )
+        textLabelFont = [UIFont fontWithName:@"Noteworthy-Bold" size:17];
+    else textLabelFont = [UIFont fontWithName:@"Noteworthy-Bold" size:21];
+    
+    UIFont *detailedTextLabelFont;
+    if( iphoneSE )
+        detailedTextLabelFont = [UIFont fontWithName:@"Noteworthy-Bold" size:15];
+    else detailedTextLabelFont = [UIFont fontWithName:@"Noteworthy-Bold" size:17];
+    
+    cell.textLabel.font = textLabelFont;
+    cell.detailTextLabel.font = detailedTextLabelFont;
+    
+    // Create image
+    UIImageView *imv = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 60, 80)];
+    if( tableView == _booksTableView )
+    {
+        imv.image=[UIImage imageNamed:[_bookImages objectAtIndex:indexPath.row]];
+    }
+    else imv.image=[UIImage imageNamed:[_moviesImages objectAtIndex:indexPath.row]];
+    
+    [cell addSubview:imv];
+    
+    return cell;
+}
+
+-(void)initializeBooksAndMovies
+{
+    _bookTitles = @[@"Secrets of the Millionaire Mind",
+                    @"Think and Grow Rich",
+                    @"Attitude is Everything",
+                    @"Over the Top",
+                    @"The Alchemist", // 5
+                    @"The Leader Who Had No Title",
+                    @"The Monk Who Sold His Ferrari",
+                    @"A New Earth",
+                    @"The Power of Now",
+                    @"Life Without Limits", // 10
+                    @"Way of the Peaceful Warrior", // 11
+                    @"Rich Dad Poor Dad", // 12
+                    @"Cashflow Quadrant", // 13
+                    @"The Richest Man in Babylon", // 14
+                    @"Emotional Intelligence", //15
+                    @"Awaken the Giant Within", // 16
+                    @"Unshakeable", // 17
+                    @"Money: Master the Game", // 18
+                    @"Unlimited Power", // 19
+                    @"How Successful People Think", // 20
+                    @"Make Today Count", // 21
+                    @"The Diamond Cutter", // 22
+                    @"The Karma of Love", // 23
+                    @"The Secret", // 24
+                    @"Eat That Frog", // 25
+                    @"Maximum Achievement", // 26
+                    @"Drumul tau catre succes", // 27
+                    @"De la gradinar la business coach", // 28
+                    @"Obiceiuri care fac toti banii", // 29
+                    @"WOW Now" // 30
+                   ];
+    
+    _bookAuthors = @[@"T. Harv Ekker",
+                     @"Napoleon Hill",
+                     @"Jeff Keller",
+                     @"Zig Ziglar",
+                     @"Paulo Coelho",
+                     @"Robin Sharma",
+                     @"Robin Sharma",
+                     @"Eckhart Tolle",
+                     @"Eckhart Tolle",
+                     @"Nick Vujicic",
+                     @"Dan Millman",
+                     @"Robert T. Kiyosaki",
+                     @"Robert T. Kiyosaki",
+                     @"George S. Clason",
+                     @"Daniel Goleman",
+                     @"Tony Robbins",
+                     @"Tony Robbins",
+                     @"Tony Robbins",
+                     @"Tony Robbins",
+                     @"John C. Maxwell",
+                     @"John C. Maxwell",
+                     @"Geshe M. Roach and Christie McNally",
+                     @"Geshe Michael Roach",
+                     @"Rhonda Byrne",
+                     @"Brian Tracy",
+                     @"Brian Tracy",
+                     @"Lorand Szasz and Brian Tracy",
+                     @"Lorand Soares Szasz",
+                     @"Liviu Pasat",
+                     @"Florin Pasat"
+                   ];
+    
+    _bookImages = @[@"SOTMM.png",
+                    @"TAGR.png",
+                    @"AIE.png",
+                    @"OTT.png",
+                    @"TA.png",
+                    @"TLWHNT.png",
+                    @"TMWSHF.png",
+                    @"ANE.png",
+                    @"TPON.png",
+                    @"LWL.png",
+                    @"WOTPW.png",
+                    @"RDPD.png",
+                    @"CQ.png",
+                    @"TRMIB.png",
+                    @"EI.png",
+                    @"ATGW.png",
+                    @"U.png",
+                    @"MMTG.png",
+                    @"UP.png",
+                    @"HSPT.png",
+                    @"MTC.png",
+                    @"TDC.png",
+                    @"TKOL.png",
+                    @"TS.png",
+                    @"ETF.png",
+                    @"MA.png",
+                    @"DTCS.png",
+                    @"DLGLBC.png",
+                    @"OCFTB.png",
+                    @"WN.png"
+                    ];
+    
+    _moviesTitle = @[@"The Pursuit of Happyness", // 1
+                     @"Pay It Forward", // 2
+                     @"Facing the Giants", // 3
+                     @"Moneyball", // 4
+                     @"Coach Carter", // 5
+                     @"August Rush", // 6
+                     @"The Green Mile", //7
+                     @"Forrest Gump", // 8
+                     @"The Shawshank Redemption", // 9
+                     @"A Beautiful Mind", // 10
+                     @"The Bucket List", // 11
+                     @"The King's Speech", // 12
+                     @"Peaceful Warrior", // 13
+                     @"Gridiron Gang", // 14
+                     @"Good Will Hunting", // 15
+                     @"Cinderella Man", // 16
+                     @"The Longest Yard", // 17
+                     @"The Guardian", // 18
+                     @"Million Dollar Baby", // 19
+                     @"Soul Surfer", // 20
+                     @"Remember the Titans", // 21
+                     @"We Are Marshall", // 22
+                     @"The Blind Side", // 23
+                     @"Forever Strong", // 24
+                     @"The Theory of Everything", // 25
+                     @"Rush", // 26
+                     @"Schindler's List", // 27
+                     @"127 Hours", // 28
+                     @"Invictus", // 29
+                     @"Invincible", // 30
+                     @"Hacksaw Ridge", // 31
+                     @"Fury", // 32
+                     @"Coco" // 33
+                     ];
+    
+    _moviesYear = @[@"2006",
+                    @"2000",
+                    @"2006",
+                    @"2011",
+                    @"2005",
+                    @"2007",
+                    @"1999",
+                    @"1994",
+                    @"1994",
+                    @"2001",
+                    @"2007",
+                    @"2010",
+                    @"2006",
+                    @"2006",
+                    @"1997",
+                    @"2005",
+                    @"2005",
+                    @"2006",
+                    @"2004",
+                    @"2011",
+                    @"2000",
+                    @"2006",
+                    @"2009",
+                    @"2008",
+                    @"2014",
+                    @"2013",
+                    @"1993",
+                    @"2010",
+                    @"2009",
+                    @"2006",
+                    @"2016",
+                    @"2014",
+                    @"2017"
+                    ];
+    
+    _moviesImages = @[@"M_TPOH.png",
+                      @"M_PIF.png",
+                      @"M_FTG.png",
+                      @"M_M.png",
+                      @"M_CC.png",
+                      @"M_AR.png",
+                      @"M_TGM.png",
+                      @"M_FG.png",
+                      @"M_TSR.png",
+                      @"M_ABM.png",
+                      @"M_TBL.png",
+                      @"M_TKS.png",
+                      @"M_PW.png",
+                      @"M_GG.png",
+                      @"M_GWH.png",
+                      @"M_CM.png",
+                      @"M_TLY.png",
+                      @"M_TG.png",
+                      @"M_MDB.png",
+                      @"M_SS.png",
+                      @"M_RTT.png",
+                      @"M_WAM.png",
+                      @"M_TBS.png",
+                      @"M_FS.png",
+                      @"M_TTOE.png",
+                      @"M_R.png",
+                      @"M_SL.png",
+                      @"M_127H.png",
+                      @"M_I.png",
+                      @"M_II.png",
+                      @"M_HR.png",
+                      @"M_F.png",
+                      @"M_C.png"
+                      ];
+}
 @end

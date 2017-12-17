@@ -13,6 +13,10 @@
 
 #import <TwitterKit/TwitterKit.h>
 
+// Google ads
+@import GoogleMobileAds;
+@class GADBannerView;
+
 @interface AppDelegate ()
 
 @end
@@ -23,6 +27,9 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
     [[Twitter sharedInstance] startWithConsumerKey:@"YtrTHHT5vMdPMxSsSOTCBudlp" consumerSecret:@"tkyv37MqK7WdTETWTtixvzS78Bs4qfk4Gbcfv7YCUQDnqaUu13"];
+    
+    // Initialize Google Mobile Ads SDK
+    [GADMobileAds configureWithApplicationID:@"ca-app-pub-7014753020131070~2107302146"];
     
     // Override point for customization after application launch.
     return YES;

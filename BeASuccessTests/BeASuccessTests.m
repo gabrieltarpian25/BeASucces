@@ -35,7 +35,7 @@
 // ################################# testNumberOfAdvices
 -(void)testNumberOfAdvices
 {
-    XCTAssertEqual(151, [[DBManager getSharedInstance] getNumberOfAdvices]);
+    XCTAssertEqual(162, [[DBManager getSharedInstance] getNumberOfAdvices]);
 }
 
 // ################################# testQuotesValidity

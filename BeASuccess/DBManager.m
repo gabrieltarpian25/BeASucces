@@ -2395,7 +2395,7 @@ static sqlite3_stmt *statement = nil;
     // quote id = 257
     boResult = [self insertDataQuote:257
                               author:@"Omar Epps"
-                               quote:@"I believe success is preparation, because opportunity is going to knock on your door sooner or later but are you prepared to answer that"
+                               quote:@"I believe success is preparation, because opportunity is going to knock on your door sooner or later but are you prepared to answer that?"
                             category:@"Success3"];
     if(boResult == FALSE)
         return FALSE;
@@ -3553,22 +3553,22 @@ static sqlite3_stmt *statement = nil;
     bool boResult;
     
     // advice id = 1
-    boResult = [self insertDataAdvice:1 advice:@"Be patient, great things don’t come easy!"];
+    boResult = [self insertDataAdvice:1 advice:@"Be patient, great things don’t come easy. When it seems things are not going right and may never be right again, accept that what is yours will come to you in the right way at just the right moment!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 2
-    boResult = [self insertDataAdvice:2 advice:@"You are doing great! Keep it up!"];
+    boResult = [self insertDataAdvice:2 advice:@"You are doing great! Keep it up! Stay committed to your dreams and someday you will reach them!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 3
-    boResult = [self insertDataAdvice:3 advice:@"Everyday you are one step closer!"];
+    boResult = [self insertDataAdvice:3 advice:@"Everyday you are one step closer! Keep striving!!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 4
-    boResult = [self insertDataAdvice:4 advice:@"Be grateful for what you have! Gratitude is the most important ingredient in a successful life!"];
+    boResult = [self insertDataAdvice:4 advice:@"Be grateful for what you have! You have no idea how many people would love to have what you’ve got!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3578,12 +3578,12 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 6
-    boResult = [self insertDataAdvice:6 advice:@"You are amazing! I am proud of you!"];
+    boResult = [self insertDataAdvice:6 advice:@"You are amazing! I am proud of you because you decided to make a change in your life. I wish you a wonderful journey!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 7
-    boResult = [self insertDataAdvice:7 advice:@"Keep striving! Don’t quit! Sooner or later, you will reach your goal"];
+    boResult = [self insertDataAdvice:7 advice:@"Keep striving! Don’t quit! Sooner or later, you will reach your goal!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3598,12 +3598,12 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 10
-    boResult = [self insertDataAdvice:10 advice:@"Dream big, work hard!"];
+    boResult = [self insertDataAdvice:10 advice:@"Dream big, work hard, stay humble and enjoy the journey!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 11
-    boResult = [self insertDataAdvice:11 advice:@"Build good habits! Build a good habit each month. After 6 months, you'll have 6 good habits that will make you successful."];
+    boResult = [self insertDataAdvice:11 advice:@"Build good habits! Build a good habit each month. After 6 months, you'll have 6 good habits that will make you successful! Daily habits you could install: 30 mins learning, 30 mins working out, gratitude, morning and night prayers or many others!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3613,7 +3613,7 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 13
-    boResult = [self insertDataAdvice:13 advice:@"Help a friend in need!"];
+    boResult = [self insertDataAdvice:13 advice:@"Help a friend in need! You may be limited in what you can do to help because of your own commitments, or for financial or geographical reasons, but don’t underestimate the value of small gestures"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3628,7 +3628,7 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 16
-    boResult = [self insertDataAdvice:16 advice:@"Everyday, learn something new in your field!"];
+    boResult = [self insertDataAdvice:16 advice:@"Everyday, learn something new in your field! You could read a book, an article, watch a video, take a course or many other forms of learning!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3638,32 +3638,32 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 18
-    boResult = [self insertDataAdvice:18 advice:@"Do things that make you happy!"];
+    boResult = [self insertDataAdvice:18 advice:@"Life is short. So do the things which make you happy and be with people who make you happy. Look for the good in every day, even if some days you have to look harder!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 19
-    boResult = [self insertDataAdvice:19 advice:@"Spend time with a children! Spend 1 hour per week playing with a child in need. You have no idea how much it means to him."];
+    boResult = [self insertDataAdvice:19 advice:@"Spend time with a children! Spend 1 hour per week playing with a child in need. You have no idea how much it means to him!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 20
-    boResult = [self insertDataAdvice:20 advice:@"Before going to bed, write in your journal 3 things you are grateful for! This is one of the most recommended ways to practice gratitude everyday!"];
+    boResult = [self insertDataAdvice:20 advice:@"Keep a journal. Before going to bed, write in it 3 things you are grateful for! This is one of the most recommended ways to practice gratitude everyday! You will become more happier because you'll realize how fortunate you are. And once you became grateful for what you have, you will receive more!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 21
-    boResult = [self insertDataAdvice:21 advice:@"Give back to others! If you can’t give the gift of money, give the gift of time!"];
+    boResult = [self insertDataAdvice:21 advice:@"Give back to others! If you can’t give the gift of money, give the gift of time! Here is a list of platforms where you can help: Kiva, Go Fund Me, Just Giving, Fundly, Bursa De Fericire (Romania), Salveaza O Inima (Romania), Salvati Copiii (Romania)."];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 22
-    boResult = [self insertDataAdvice:22 advice:@"Embrace the change! It's the only way you learn and grow as a person"];
+    boResult = [self insertDataAdvice:22 advice:@"Embrace the change! It's the only way you learn and grow as a person!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 23
-    boResult = [self insertDataAdvice:23 advice:@"Step out of your comfort zone! Try new things!"];
+    boResult = [self insertDataAdvice:23 advice:@"Step out of your comfort zone! Try new things because if you want something you've never had you've got to do something you've never done!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3678,12 +3678,12 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 26
-    boResult = [self insertDataAdvice:26 advice:@"Keep a journal! Begin by writing each night three things you are grateful for that happened that day!"];
+    boResult = [self insertDataAdvice:26 advice:@"Don't live the same year 75 times and call it a life! Step out of your comfort zone!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 27
-    boResult = [self insertDataAdvice:27 advice:@"You are the only responsible for your happiness! No one in charge of your life!"];
+    boResult = [self insertDataAdvice:27 advice:@"You are the only one responsible for your happiness! No one is in charge of your life, so stop blaming and complaining and do something! Here is a 5 steps no more blaming plan: 1: Recognize when you're blaming. 2: Take a moment to get centered, let out the stress and tension. 3: Recognize that you and this other person are both equals. 4: Own your own experience and take responsibility. 5: Apologize. Bonus Step: TAKE ACTION NOW!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3693,17 +3693,17 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 29
-    boResult = [self insertDataAdvice:29 advice:@"Make time to practice meditation and prayer!"];
+    boResult = [self insertDataAdvice:29 advice:@"Make time to practice meditation and prayer! I recommend you to do it first thing in the morning, sit down for just two minutes, count your breaths, notice the light, sound, energy, stay silent, smile when you're done!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 30
-    boResult = [self insertDataAdvice:30 advice:@"Get some time off and play a game!"];
+    boResult = [self insertDataAdvice:30 advice:@"Get some time off and play a game! Enjoy life!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 31
-    boResult = [self insertDataAdvice:31 advice:@"Make people smile everyday!"];
+    boResult = [self insertDataAdvice:31 advice:@"Make people smile everyday! Hold the door for strangers, offer up your seat in a crowded place, call an old friend out of the blue, compliment a co-worker, smile at someone, say 'Hi' to a stranger as you pass them on the street!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3723,7 +3723,7 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 35
-    boResult = [self insertDataAdvice:35 advice:@"Realise that life is a school and you are here to learn! Every failure turns into success if your learn from it! "];
+    boResult = [self insertDataAdvice:35 advice:@"Realise that life is a school and you are here to learn! Every failure turns into success if your learn from it!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3738,7 +3738,7 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 38
-    boResult = [self insertDataAdvice:38 advice:@"Enjoy life’s each moment! You will not live for ever, so till you are alive, enjoy every moment of your life from the core of your heart."];
+    boResult = [self insertDataAdvice:38 advice:@"Enjoy life’s each moment! You will not live for ever, so till you are alive, enjoy every moment of your life from the core of your heart!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3748,17 +3748,17 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 40
-    boResult = [self insertDataAdvice:40 advice:@"The best is yet to come!"];
+    boResult = [self insertDataAdvice:40 advice:@"The best is yet to come! Have faith and keep it up!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 41
-    boResult = [self insertDataAdvice:41 advice:@"Spend some time alone regularly!"];
+    boResult = [self insertDataAdvice:41 advice:@"Spend some time alone regularly! Life moves at a crazy speed, take some time to think and reflect, understand what really makes you happy, recharge yourself!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 42
-    boResult = [self insertDataAdvice:42 advice:@"Use more positive words!"];
+    boResult = [self insertDataAdvice:42 advice:@"Use more positive words! Suggestions: Why not? -> Sounds great, No problem -> Definitely, Can't complain -> Everything is going well, I'm exhausted -> I need to rest, I forgot -> I will make sure to reminder, Don't ... -> I like it when ..., No -> I know you like ice cream, but eating too much isn't healthy!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3773,7 +3773,7 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 45
-    boResult = [self insertDataAdvice:45 advice:@"Make each day count!"];
+    boResult = [self insertDataAdvice:45 advice:@"Make each day count! Be grateful, express yourself, appreciate beauty, share a little kindness, laugh, learn something new, play, do what you love!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3793,17 +3793,17 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 49
-    boResult = [self insertDataAdvice:49 advice:@"Sometimes you win, sometimes you learn!"];
+    boResult = [self insertDataAdvice:49 advice:@"Sometimes you win, sometimes you learn! Failure is part of the Road To Success!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 50
-    boResult = [self insertDataAdvice:50 advice:@"Time is the only thing you never get back!"];
+    boResult = [self insertDataAdvice:50 advice:@"Time is the only thing you never get back! Use it wisely! Nobody will remember you for all the TV shows you've watched!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 51
-    boResult = [self insertDataAdvice:51 advice:@"Attitude is more important than talent!"];
+    boResult = [self insertDataAdvice:51 advice:@"Attitude is more important than talent! Always maintain a positive one! Have an attitude-boosting morning routine, carry an attitude of happiness with you, smile, be proactive, change your thoughts, focus on the good, keep up your enthusiasm, limit your complaints, watch your words, use the power of humor, practice gratitude, develop an attitude of curiosity, seek out others with a positive attitude!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3858,7 +3858,7 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 62
-    boResult = [self insertDataAdvice:62 advice:@"Put down your phone when you’re out with people!"];
+    boResult = [self insertDataAdvice:62 advice:@"Put down your phone when you’re out with people! Give them the gift of your presence!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3873,7 +3873,7 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 65
-    boResult = [self insertDataAdvice:65 advice:@"Always be honest!"];
+    boResult = [self insertDataAdvice:65 advice:@"Always remember to be kind, be fair, be honest, be true, and all of these things will come back to you!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3883,7 +3883,7 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 67
-    boResult = [self insertDataAdvice:67 advice:@"Help those around you!"];
+    boResult = [self insertDataAdvice:67 advice:@"Help those around you and your life will be much happier!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3893,22 +3893,22 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 69
-    boResult = [self insertDataAdvice:69 advice:@"Never let failure get to your heart!"];
+    boResult = [self insertDataAdvice:69 advice:@"Never let failure get to your heart! "];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 70
-    boResult = [self insertDataAdvice:70 advice:@"Keep your mind positive!"];
+    boResult = [self insertDataAdvice:70 advice:@"Keep your mind positive! Meditate or do yoga, smile, surround yourself with positive people, change the tone of your thoughts from negative to positive, you create your life - take responsibility, help someone, remember that no one is perfect and let yourself move forward, list three things you are grateful for every day before going to sleep, read positive quotes."];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 71
-    boResult = [self insertDataAdvice:71 advice:@"Empower others!"];
+    boResult = [self insertDataAdvice:71 advice:@"Empower others! Smile, be positive, give genuine compliments, challenge others, encourage creation, do things together, share ideas, teach, participate, travel, mobilize, live outside your comfort zone, make connections, pay it forward, trust in karma."];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 72
-    boResult = [self insertDataAdvice:72 advice:@"Focus only on one thing at a time!"];
+    boResult = [self insertDataAdvice:72 advice:@"Focus only on one thing at a time! You will get fantastic results!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3928,12 +3928,12 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 76
-    boResult = [self insertDataAdvice:76 advice:@"Get up early! "];
+    boResult = [self insertDataAdvice:76 advice:@"Get up early! Before going to work, do something productive like reading a book, working out or working for your dream!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 77
-    boResult = [self insertDataAdvice:77 advice:@"Nothing happens until you take action!"];
+    boResult = [self insertDataAdvice:77 advice:@"Nothing happens until you take action! Make a decision and watch your life move forward"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3943,7 +3943,7 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 79
-    boResult = [self insertDataAdvice:79 advice:@"Take responsibility for your mistakes!"];
+    boResult = [self insertDataAdvice:79 advice:@"Take responsibility for your mistakes! Learn form them and next time you will do it better!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3958,7 +3958,7 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 82
-    boResult = [self insertDataAdvice:82 advice:@"Listen to podcasts and audiobooks on your daily commute!"];
+    boResult = [self insertDataAdvice:82 advice:@"Listen to podcasts and audiobooks on your daily commute! You could boost your motivation, listen to something inspirational or just learn something new in your field"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3968,7 +3968,7 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 84
-    boResult = [self insertDataAdvice:84 advice:@"Don’t make excuses!"];
+    boResult = [self insertDataAdvice:84 advice:@"Don’t make excuses! If it is important to you, you will find a way"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -3993,7 +3993,7 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 89
-    boResult = [self insertDataAdvice:89 advice:@"Your attitude is everything!"];
+    boResult = [self insertDataAdvice:89 advice:@"Your attitude is everything! Have an attitude-boosting morning routine, carry an attitude of happiness with you, smile, be proactive, change your thoughts, focus on the good, keep up your enthusiasm, limit your complaints, watch your words, use the power of humor, practice gratitude, develop an attitude of curiosity, seek out others with a positive attitude!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -4003,7 +4003,7 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 91
-    boResult = [self insertDataAdvice:91 advice:@"Get good and skilled at what you do! Read books, articles, go to trainings, do everything that will improve your knowledge in your field. "];
+    boResult = [self insertDataAdvice:91 advice:@"Get good and skilled at what you do! Read books, articles, go to trainings, do something everyday that will improve your knowledge in your field!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -4043,7 +4043,7 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 99
-    boResult = [self insertDataAdvice:99 advice:@"Let go of your ego! Practice forgiveness and honesty!"];
+    boResult = [self insertDataAdvice:99 advice:@"Let go of your ego! Practice forgiveness and honesty! Forgiveness is a gift you give to yourself so you can move ahead and perform at your peak"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -4078,22 +4078,22 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 106
-    boResult = [self insertDataAdvice:106 advice:@"Save at least 10% of your income each month!"];
+    boResult = [self insertDataAdvice:106 advice:@"Save at least 10% of your income each month! Read more about T. Harv Ekker's money jar system!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 107
-    boResult = [self insertDataAdvice:107 advice:@"Spend less than you earn!"];
+    boResult = [self insertDataAdvice:107 advice:@"Spend less than you earn! Read more about T. Harv Ekker's money jar system!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 108
-    boResult = [self insertDataAdvice:108 advice:@"Maintain a monthly budget! The way the universe works is if you manage your money, you will get more. If you mismanage your money, you will not get any more! Read more about Harv Ekker's money jar system!"];
+    boResult = [self insertDataAdvice:108 advice:@"Maintain a monthly budget! The way the universe works is if you manage your money, you will get more. If you mismanage your money, you will not get any more! Read more about T. Harv Ekker's money jar system!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 109
-    boResult = [self insertDataAdvice:109 advice:@"Speak lovingly to yourself!"];
+    boResult = [self insertDataAdvice:109 advice:@"Speak lovingly to yourself! You are great, you are amazing, you are unique, you are strong, you can do this, it's your time - go for it"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -4143,27 +4143,27 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 119
-    boResult = [self insertDataAdvice:119 advice:@"Ask questions everyday!"];
+    boResult = [self insertDataAdvice:119 advice:@"Ask good questions everyday!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 120
-    boResult = [self insertDataAdvice:120 advice:@"Read something inspirational right before going to bed and after waking up. You could start with this app :) !"];
+    boResult = [self insertDataAdvice:120 advice:@"Read something inspirational right before going to bed and after waking up. You could start with this app!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 121
-    boResult = [self insertDataAdvice:121 advice:@"Say no to distractions!"];
+    boResult = [self insertDataAdvice:121 advice:@"Say no to distractions so you can say YES to your destiny!"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 122
-    boResult = [self insertDataAdvice:122 advice:@"Improve your work every single day!"];
+    boResult = [self insertDataAdvice:122 advice:@"Improve your work every single day! What can I do today a little bit better than I did yesterday?"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 123
-    boResult = [self insertDataAdvice:123 advice:@"Be a hero to someone!"];
+    boResult = [self insertDataAdvice:123 advice:@"Be a hero to someone! Be your best self, be there for others (honestly and without expectation), add value to everything you touch"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -4228,7 +4228,7 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 136
-    boResult = [self insertDataAdvice:136 advice:@"Stress and worry less!"];
+    boResult = [self insertDataAdvice:136 advice:@"Stress and worry less! Life should be fun!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -4238,7 +4238,7 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 138
-    boResult = [self insertDataAdvice:138 advice:@"Enjoy the moment!"];
+    boResult = [self insertDataAdvice:138 advice:@"Enjoy the moment! You deserve it!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -4253,7 +4253,7 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 141
-    boResult = [self insertDataAdvice:141 advice:@"When in doubt, take a deep breath!"];
+    boResult = [self insertDataAdvice:141 advice:@"When in doubt, take a deep breath! Follow your instincts and go where you never would have considered possible"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -4288,7 +4288,7 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 148
-    boResult = [self insertDataAdvice:148 advice:@"You are the only responsible for your life!"];
+    boResult = [self insertDataAdvice:148 advice:@"You are the only one responsible for your life!"];
     if(boResult == FALSE)
         return FALSE;
     
@@ -4298,12 +4298,67 @@ static sqlite3_stmt *statement = nil;
         return FALSE;
     
     // advice id = 150
-    boResult = [self insertDataAdvice:150 advice:@"Quit a bad habit each week!"];
+    boResult = [self insertDataAdvice:150 advice:@"Replace a bad habit each month! Choose a substitute for your bad habit, create a plan, visualize yourself succeeding"];
     if(boResult == FALSE)
         return FALSE;
     
     // advice id = 151
-    boResult = [self insertDataAdvice:151 advice:@"Never work for money, work for your passion!"];
+    boResult = [self insertDataAdvice:151 advice:@"Never work for money, work for your passion! You will be much happier and fulfilled and money will come"];
+    if(boResult == FALSE)
+        return FALSE;
+    
+    // advice id = 152
+    boResult = [self insertDataAdvice:152 advice:@"Celebrate your achievements and raise the bar each time you succeed!"];
+    if(boResult == FALSE)
+        return FALSE;
+    
+    // advice id = 153
+    boResult = [self insertDataAdvice:153 advice:@"What you are looking for, what you need is self-discipline. Self-discipline, as the term implies, comes from you. Comes from when you make a decision to be discipline, when you make a decision to be better, to do more and to be more. Make that decision now!"];
+    if(boResult == FALSE)
+        return FALSE;
+    
+    // advice id = 154
+    boResult = [self insertDataAdvice:154 advice:@"The Road To Success is through commitment. And through the strength to drive through that commitment when it gets hard. It is going to get hard and you want to quit sometime but it will be colored by who you are and who you want to be. Do not quit"];
+    if(boResult == FALSE)
+        return FALSE;
+    
+    // advice id = 155
+    boResult = [self insertDataAdvice:155 advice:@"We are all equal as human beings and if you are obsessed with something and you truly pursue your passion with everything you have, regardless of anythings else, work hard, put in the time and you will succeed"];
+    if(boResult == FALSE)
+        return FALSE;
+    
+    // advice id = 156
+    boResult = [self insertDataAdvice:156 advice:@"You got to shoot for the top, really have big goals and think big because then you will going to achieve big things. We don't achieve big things by accident"];
+    if(boResult == FALSE)
+        return FALSE;
+    
+    // advice id = 157
+    boResult = [self insertDataAdvice:157 advice:@"It does not matter how old you are, how young you are, your age, you can achieve anything you set your mind to. You can do it!"];
+    if(boResult == FALSE)
+        return FALSE;
+    
+    // advice id = 158
+    boResult = [self insertDataAdvice:158 advice:@"Always question yourself 'What can I improve? What do I need to change?' because if you do the same, you will stay the same, and staying the same means going backwards because there are other people that are working hard and improving"];
+    if(boResult == FALSE)
+        return FALSE;
+    
+    // advice id = 159
+    boResult = [self insertDataAdvice:159 advice:@"Just because you failed, does not make you a failure! So just do me a huge favour, keep going, try to make that one different decision and don't let the distraction distract you. Don't let the distraction distract you!"];
+    if(boResult == FALSE)
+        return FALSE;
+    
+    // advice id = 160
+    boResult = [self insertDataAdvice:160 advice:@"Don't allow anyone, friend, family, acquaintance, teachers, whoever it is, don't allow anyone to tell you that what you are dreaming for yourself and for your family is not possible. It is possible!"];
+    if(boResult == FALSE)
+        return FALSE;
+    
+    // advice id = 161
+    boResult = [self insertDataAdvice:161 advice:@"If you don't do it, nothing is possible. If you try to do it, at least you have the hope!"];
+    if(boResult == FALSE)
+        return FALSE;
+    
+    // advice id = 162
+    boResult = [self insertDataAdvice:162 advice:@"Just keep going. Perseverance is necessary. Today is very difficult, tomorrow is difficult, but the day after tomorrow is very beautiful"];
     if(boResult == FALSE)
         return FALSE;
     
